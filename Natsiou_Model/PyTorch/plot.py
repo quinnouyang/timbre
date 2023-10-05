@@ -29,9 +29,10 @@ if __name__ == '__main__':
         validation_fraction=0., )
 
     plot_generated_images(data_loader=train_loader, model=model, device=DEVICE, modeltype='VAE')
+    plt.show()
 
     plot_latent_space_with_labels(
-        num_classes=2,
+        num_classes=10,
         data_loader=train_loader,
         encoding_fn=model.encoding_fn,
         device=DEVICE)
