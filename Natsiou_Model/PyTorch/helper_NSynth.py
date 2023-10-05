@@ -1,4 +1,6 @@
 #  This will eventually handle the slimming down of the dataset.
+# from torchaudio.transforms import SpectralCentroid
+import torchaudio
 from torchdata.datapipes.iter import IterableWrapper, FileOpener
 import os
 
@@ -13,6 +15,7 @@ def parse_json_metadata():
     datapipe3 = datapipe2.map(get_name)
     json_dp = datapipe3.parse_json_files()
     json_list = list(json_dp)
+    print("NSynth sample set size:", "->", len(json_list[0][1]))
     return json_list[0][1]
 
 
@@ -23,8 +26,7 @@ def filter_json_metadata_pitch(old_dict):
             pass
         else:
             new_dict[key] = old_dict[key]
-    print("Previous Sample Set Size: ", "->", len(old_dict))
-    print("New Sample Set Size: ", "->", len(new_dict))
+    print("Pitch filtered sample set size: ", "->", len(new_dict))
     return new_dict
 
 
@@ -40,20 +42,26 @@ def filter_json_metadata_instrument_family(old_dict):
                 old_dict[key]['instrument_family_str'] == 'reed' or
                 old_dict[key]['instrument_family_str'] == 'string'):
             new_dict[key] = old_dict[key]
-    print("Previous Sample Set Size: ", "->", len(old_dict))
-    print("New Sample Set Size: ", "->", len(new_dict))
+    print("Instrument filtered sample set size: ", "->", len(new_dict))
     return new_dict
 
+
+def calculate_spectral_centroid():
+    waveform = torchaudio.load("")
 
 def filter_json_metadata_quality(old_dict):
     new_dict = {}
     for key in old_dict.keys():
-        if "percussive" in old_dict[key]['qualities_str']:
+        if ("percussive" in old_dict[key]['qualities_str'] or
+                "fast_decay" in old_dict[key]['qualities_str'] or
+                "long_release" in old_dict[key]['qualities_str'] or
+                "multiphonic" in old_dict[key]['qualities_str'] or
+                "tempo-synced" in old_dict[key]['qualities_str'] or
+                "nonlinear_env" in old_dict[key]['qualities_str']):
             pass
         else:
             new_dict[key] = old_dict[key]
-    print("Previous Sample Set Size: ", "->", len(old_dict))
-    print("New Sample Set Size: ", "->", len(new_dict))
+    print("Quality filtered sample set size: ", "->", len(new_dict))
     return new_dict
 
 
