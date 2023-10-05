@@ -1,0 +1,7 @@
+# Python Stuff
+.ipynb_checkpoints
+__pycache__
+.python-version
+
+# Miscellaneous
+**/.DS_Store
