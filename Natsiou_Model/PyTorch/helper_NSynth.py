@@ -1,3 +1,4 @@
+#  This will eventually handle the slimming down of the dataset.
 from torchdata.datapipes.iter import IterableWrapper, FileOpener
 import os
 
