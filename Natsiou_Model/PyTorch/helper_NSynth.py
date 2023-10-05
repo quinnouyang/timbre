@@ -1,6 +1,9 @@
 #  This will eventually handle the slimming down of the dataset.
 # from torchaudio.transforms import SpectralCentroid
 import torchaudio
+from pathlib import Path
+from torchaudio import transforms
+from torchaudio import functional
 from torchdata.datapipes.iter import IterableWrapper, FileOpener
 import os
 
@@ -46,9 +49,6 @@ def filter_json_metadata_instrument_family(old_dict):
     return new_dict
 
 
-def calculate_spectral_centroid():
-    waveform = torchaudio.load("")
-
 def filter_json_metadata_quality(old_dict):
     new_dict = {}
     for key in old_dict.keys():
@@ -65,8 +65,26 @@ def filter_json_metadata_quality(old_dict):
     return new_dict
 
 
+def calculate_spectral_centroid():
+    waveform, sample_rate = torchaudio.load(Path('nsynth-train/audio/guitar_acoustic_001-082-050.wav').resolve(),
+                                            normalize=True)
+    transform = transforms.SpectralCentroid(sample_rate, n_fft=700,
+                                            win_length=690, hop_length=172)
+    spectral_centroid = transform(waveform)
+    print(spectral_centroid)
+
+
+def calculate_fundamental_frequency():
+    waveform, sample_rate = torchaudio.load(Path('nsynth-train/audio/guitar_acoustic_001-082-050.wav').resolve(),
+                                            normalize=True)
+    pitch = functional.detect_pitch_frequency(waveform, sample_rate)
+    print(pitch)
+
+
 if __name__ == '__main__':
     json_dict = parse_json_metadata()
     json_dict = filter_json_metadata_pitch(json_dict)
     json_dict = filter_json_metadata_instrument_family(json_dict)
     json_dict = filter_json_metadata_quality(json_dict)
+    calculate_spectral_centroid()
+    calculate_fundamental_frequency()
