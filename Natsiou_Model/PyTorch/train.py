@@ -154,25 +154,3 @@ if __name__ == '__main__':
     plot_training_loss(log_dict['train_kl_loss_per_batch'], NUM_EPOCHS, custom_label=" (KL)")
     plot_training_loss(log_dict['train_combined_loss_per_batch'], NUM_EPOCHS, custom_label=" (combined)")
     plt.show()
-
-    plot_generated_images(data_loader=train_loader, model=model, device=DEVICE, modeltype='VAE')
-
-    plot_latent_space_with_labels(
-        num_classes=NUM_CLASSES,
-        data_loader=train_loader,
-        encoding_fn=model.encoding_fn,
-        device=DEVICE)
-
-    plt.legend()
-    plt.show()
-
-    with torch.no_grad():
-        new_image = model.decoder(torch.tensor([-0.0, 0.03]).to(DEVICE))
-        new_image.squeeze_(0)
-        new_image.squeeze_(0)
-    plt.imshow(new_image.to('cpu').numpy(), cmap='binary')
-    plt.show()
-
-    for i in range(10):
-        plot_images_sampled_from_vae(model=model, device=DEVICE, latent_size=2)
-        plt.show()
