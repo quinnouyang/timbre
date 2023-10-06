@@ -43,7 +43,8 @@ def filter_json_metadata_instrument_family(old_dict):
                 old_dict[key]['instrument_family_str'] == 'keyboard' or
                 old_dict[key]['instrument_family_str'] == 'organ' or
                 old_dict[key]['instrument_family_str'] == 'reed' or
-                old_dict[key]['instrument_family_str'] == 'string'):
+                old_dict[key]['instrument_family_str'] == 'string' or
+                old_dict[key]['instrument_family_str'] == 'vocal'):
             new_dict[key] = old_dict[key]
     print("Instrument filtered sample set size: ", "->", len(new_dict))
     return new_dict
