@@ -3,5 +3,8 @@
 __pycache__
 .python-version
 
+# Outputs
+**/*.png
+
 # Miscellaneous
 **/.DS_Store
