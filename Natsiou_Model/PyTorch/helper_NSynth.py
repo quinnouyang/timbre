@@ -1,11 +1,40 @@
 #  This will eventually handle the slimming down of the dataset.
 # from torchaudio.transforms import SpectralCentroid
+import random
+
 import torchaudio
 from pathlib import Path
 from torchaudio import transforms
 from torchaudio import functional
 from torchdata.datapipes.iter import IterableWrapper, FileOpener
+from torch.utils.data import Dataset
 import os
+
+
+class NSynthDataset(Dataset):
+
+    def __init__(self, annotations_json, audio_dir):
+        self.annotations = annotations_json
+        self.audio_dir = audio_dir
+
+    def __len__(self):
+        return len(self.annotations)
+
+    def __getitem__(self, index):
+        audio_sample_path = self._get_audio_sample_path(index)
+        label = self._get_audio_sample_label(index)
+        signal, sr = torchaudio.load(audio_sample_path)
+        return signal, label
+
+    def _get_audio_sample_path(self, index):
+        path = os.path.join(self.audio_dir, list(self.annotations.items())[index][1]["instrument_str"], ".wav")
+        return path
+
+    def _get_audio_sample_label(self, index):
+        return list(self.annotations.items())[index][1]["instrument_str"]
+
+    def get_random_annotation(self):
+        return random.choice(list(self.annotations.items()))[1]
 
 
 def get_name(path_and_stream):
@@ -87,5 +116,8 @@ if __name__ == '__main__':
     json_dict = filter_json_metadata_pitch(json_dict)
     json_dict = filter_json_metadata_instrument_family(json_dict)
     json_dict = filter_json_metadata_quality(json_dict)
-    calculate_spectral_centroid()
-    calculate_fundamental_frequency()
+    data = NSynthDataset(json_dict, "/nsynth-train/audio")
+    point = data.get_random_annotation()
+    print(point)
+    # calculate_spectral_centroid()
+    # calculate_fundamental_frequency()
