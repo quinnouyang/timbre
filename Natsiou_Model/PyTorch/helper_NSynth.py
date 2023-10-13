@@ -18,10 +18,9 @@ from IPython.display import Audio
 
 class NSynthDataset(Dataset):
 
-    def __init__(self, annotations_json, audio_dir, transformation, target_sample_rate):
+    def __init__(self, annotations_json, audio_dir, target_sample_rate):
         self.annotations = annotations_json
         self.audio_dir = audio_dir
-        self.transformation = transformation
         self.target_sample_rate = target_sample_rate
 
     def __len__(self):
@@ -33,7 +32,6 @@ class NSynthDataset(Dataset):
         signal, sr = torchaudio.load(audio_sample_path)
         signal = self._resample_if_necessary(signal, sr)
         signal = self._mix_down_if_necessary(signal)
-        signal = self.transformation(signal)
         return signal, label, audio_sample_path
 
     def _resample_if_necessary(self, signal, sr):
@@ -179,28 +177,19 @@ if __name__ == '__main__':
     json_dict = filter_json_metadata_instrument_family(json_dict)
     json_dict = filter_json_metadata_quality(json_dict)
 
-    mel_spectrogram = torchaudio.transforms.MelSpectrogram(
-        sample_rate=SAMPLE_RATE,
-        n_fft=1024,
-        hop_length=512,
-        n_mels=64
-    )
-    data = NSynthDataset(json_dict, "./nsynth-train/audio", mel_spectrogram, SAMPLE_RATE)
+    data = NSynthDataset(json_dict, "./nsynth-train/audio", SAMPLE_RATE)
 
-    signal, label, path = data[0]
+    signal, label, path = data[random.randint(0, len(json_dict)-1)]
     print(label)
-
-    # Load audio
-    SPEECH_WAVEFORM, SAMPLE_RATE = torchaudio.load(path)
 
     # Define transform
     spectrogram = transforms.Spectrogram(n_fft=512)
 
     # Perform transform
-    spec = spectrogram(SPEECH_WAVEFORM)
+    spec = spectrogram(signal)
 
     fig, axs = plt.subplots(2, 1)
-    plot_waveform(SPEECH_WAVEFORM, SAMPLE_RATE, title="Original waveform", ax=axs[0])
+    plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
     plot_spectrogram(spec[0], title="spectrogram", ax=axs[1])
     fig.tight_layout()
     plt.show()
