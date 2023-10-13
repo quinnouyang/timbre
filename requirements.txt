@@ -4,3 +4,4 @@ torchvision~=0.15.2
 numpy~=1.26.0
 torchaudio~=2.1.0
 torchdata~=0.7.0
+audiolazy~=0.6
