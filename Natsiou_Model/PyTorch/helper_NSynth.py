@@ -5,11 +5,11 @@ import random
 import librosa
 import torchaudio
 from pathlib import Path
+
 from torchaudio import transforms
 from torchaudio import functional
 from torchdata.datapipes.iter import IterableWrapper, FileOpener
 from torch.utils.data import Dataset
-# from audiolazy import lazy_midi
 import torch
 import matplotlib.pyplot as plt
 import os
@@ -33,7 +33,9 @@ class NSynthDataset(Dataset):
         signal, sr = torchaudio.load(audio_sample_path)
         signal = self._resample_if_necessary(signal, sr)
         signal = self._mix_down_if_necessary(signal)
-        return signal, label, audio_sample_path
+        midi = self._get_audio_sample_midi(index)
+        fund_freq = self._get_fundamental_freq(midi)
+        return signal, label, audio_sample_path, fund_freq
 
     def _resample_if_necessary(self, signal, sr):
         if sr != self.target_sample_rate:
@@ -53,8 +55,11 @@ class NSynthDataset(Dataset):
     def _get_audio_sample_label(self, index):
         return list(self.annotations.items())[index][1]["note_str"]
 
-    # def _get_fundamental_freq(self, index):
-    #     return lazy_midi.midi2freq(list(self.annotations.items())[index][1]["pitch"])
+    def _get_audio_sample_midi(self, index):
+        return list(self.annotations.items())[index][1]["pitch"]
+
+    def _get_fundamental_freq(self, midi):
+        return 440*2**((midi-69)/12)
 
     def get_harmonic_amplitude(self, index, num_harmonics):
         # fund = self._get_fundamental_freq(self, index)
@@ -189,9 +194,10 @@ def get_harm_bins_from_spectrogram(specgram):
         for j in range(round(-bin_guess/10), round(bin_guess/10)):
             cum = 0
             bin_avg_amp = {}
-            for k in s[bin_guess+j]:
-                cum = cum + k
-            bin_avg_amp[bin_guess+j] = cum/len(s[bin_guess+j])
+            if (bin_guess + j) < 500:
+                for k in s[bin_guess+j]:
+                    cum = cum + k
+                bin_avg_amp[bin_guess+j] = cum/len(s[bin_guess+j])
         local_max = max(bin_avg_amp, key=bin_avg_amp.get)
         bins_list.append(local_max)
     return bins_list
@@ -225,7 +231,8 @@ if __name__ == '__main__':
 
     data = NSynthDataset(json_dict, "./nsynth-train/audio", SAMPLE_RATE)
 
-    signal, label, path = data[random.randint(0, len(json_dict) - 1)]
+    random_number = random.randint(0, len(json_dict) - 1)
+    signal, label, path, fund_freq = data[random_number]
     print(label)
 
     n_fft = 1024
@@ -264,8 +271,11 @@ if __name__ == '__main__':
     )
 
     atk_time = get_attack_time_from_waveform(signal)
-    print(atk_time)
+    print("atk_time: ", atk_time)
     harm_bins = get_harm_bins_from_spectrogram(spec[0])
+    print("harm_bins: ", harm_bins)
+    print("fundamental_freq: ", fund_freq)
+
 
     # fig, axs = plt.subplots(3, 1)
     # plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
