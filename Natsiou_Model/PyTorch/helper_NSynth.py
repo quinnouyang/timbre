@@ -170,6 +170,17 @@ def plot_fbank(fbank, title=None):
     axs.set_xlabel("mel bin")
 
 
+def get_fund_bin_from_spectrogram(specgram):
+    s = specgram.numpy()
+    bin_avg_amp = {}
+    for i in range(500):
+        cum = 0
+        for j in s[i]:
+            cum = cum + j
+        bin_avg_amp[i] = cum/len(s[i])
+    return max(bin_avg_amp, key=bin_avg_amp.get)
+
+
 if __name__ == '__main__':
     SAMPLE_RATE = 16000
     json_dict = parse_json_metadata()
@@ -179,20 +190,19 @@ if __name__ == '__main__':
 
     data = NSynthDataset(json_dict, "./nsynth-train/audio", SAMPLE_RATE)
 
-    signal, label, path = data[random.randint(0, len(json_dict)-1)]
+    signal, label, path = data[random.randint(0, len(json_dict) - 1)]
     print(label)
 
-    # For spectrogram
-    # Define transform
-    spectrogram = transforms.Spectrogram(n_fft=512)\
-    # Perform transform
-    spec = spectrogram(signal)
-
-    # For MelSpectrogram
     n_fft = 1024
     win_length = None
     hop_length = 512
     n_mels = 128
+
+    # For spectrogram
+    # Define transform
+    spectrogram = transforms.Spectrogram(n_fft=n_fft)
+    # Perform transform
+    spec = spectrogram(signal)
 
     mel_spectrogram = transforms.MelSpectrogram(
         sample_rate=SAMPLE_RATE,
@@ -218,12 +228,13 @@ if __name__ == '__main__':
         norm="slaney"
     )
 
-    fig, axs = plt.subplots(3, 1)
-    plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
-    plot_spectrogram(spec[0], title="spectrogram", ax=axs[1])
-    plot_spectrogram(melspec[0], title="MelSpectrogram - torchaudio", ylabel="mel freq", ax=axs[2])
-    plot_fbank(mel_filters, "Mel Filter Bank - torchaudio")
-    fig.tight_layout()
+    fund_bin = get_fund_bin_from_spectrogram(spec[0])
+    print(fund_bin)
+
+    # fig, axs = plt.subplots(3, 1)
+    # plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
+    plot_spectrogram(spec[0], title="spectrogram")
+    # plot_spectrogram(melspec[0], title="MelSpectrogram - torchaudio", ylabel="mel freq", ax=axs[2])
+    # plot_fbank(mel_filters, "Mel Filter Bank - torchaudio")
+    # fig.tight_layout()
     plt.show()
-
-
