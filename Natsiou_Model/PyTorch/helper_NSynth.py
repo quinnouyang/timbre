@@ -61,18 +61,6 @@ class NSynthDataset(Dataset):
     def _get_fundamental_freq(self, midi):
         return 440*2**((midi-69)/12)
 
-    def get_harmonic_amplitude(self, index, num_harmonics):
-        # fund = self._get_fundamental_freq(self, index)
-        sample = librosa.load(self._get_audio_sample_path(index))
-        hop_length = 512
-        n_fft = 2048
-        fts = librosa.stft(sample, n_fft=n_fft, hop_length=hop_length)
-        S = librosa.amplitude_to_db(abs(fts))
-        # for i in range(num_harmonics-1):
-        #     harm_freq = fund * (i+1)
-        plt.figure(figsize=(15, 5))
-        librosa.display.specshow(S, self.sr, hop_length, x_axis="time", y_axis="linear")
-        plt.colorbar(format='%+2.0f dB')
 
     def get_random_annotation(self):
         return random.choice(list(self.annotations.items()))[1]
@@ -134,15 +122,6 @@ def filter_json_metadata_quality(old_dict):
             new_dict[key] = old_dict[key]
     print("Quality filtered sample set size: ", "->", len(new_dict))
     return new_dict
-
-
-def calculate_spectral_centroid():
-    waveform, sample_rate = torchaudio.load(Path('nsynth-train/audio/guitar_acoustic_001-082-050.wav').resolve(),
-                                            normalize=True)
-    transform = transforms.SpectralCentroid(sample_rate, n_fft=700,
-                                            win_length=690, hop_length=172)
-    spectral_centroid = transform(waveform)
-    print(spectral_centroid)
 
 
 def plot_waveform(waveform, sr, title="Waveform", ax=None):
