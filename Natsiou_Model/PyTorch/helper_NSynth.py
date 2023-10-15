@@ -170,15 +170,30 @@ def plot_fbank(fbank, title=None):
     axs.set_xlabel("mel bin")
 
 
-def get_fund_bin_from_spectrogram(specgram):
+def get_harm_bins_from_spectrogram(specgram):
     s = specgram.numpy()
     bin_avg_amp = {}
+    # First, find the fundamental - this can be optimized
+    # This method breaks when a harmonic is louder than the fundamental.
     for i in range(500):
         cum = 0
         for j in s[i]:
             cum = cum + j
         bin_avg_amp[i] = cum/len(s[i])
-    return max(bin_avg_amp, key=bin_avg_amp.get)
+    fund_bin = max(bin_avg_amp, key=bin_avg_amp.get)
+    bins_list = [fund_bin]
+    # Next guess that the bins of higher freqs are multiples of the first bin.
+    for i in range(2, 8):
+        bin_guess = fund_bin * i + 1
+        for j in range(round(-bin_guess/10), round(bin_guess/10)):
+            cum = 0
+            bin_avg_amp = {}
+            for k in s[bin_guess+j]:
+                cum = cum + k
+            bin_avg_amp[bin_guess+j] = cum/len(s[bin_guess+j])
+        local_max = max(bin_avg_amp, key=bin_avg_amp.get)
+        bins_list.append(local_max)
+    return bins_list
 
 
 if __name__ == '__main__':
@@ -228,8 +243,8 @@ if __name__ == '__main__':
         norm="slaney"
     )
 
-    fund_bin = get_fund_bin_from_spectrogram(spec[0])
-    print(fund_bin)
+    harm_bins = get_harm_bins_from_spectrogram(spec[0])
+    print(harm_bins)
 
     # fig, axs = plt.subplots(3, 1)
     # plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
