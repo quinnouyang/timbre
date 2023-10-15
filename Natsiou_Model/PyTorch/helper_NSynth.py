@@ -35,7 +35,8 @@ class NSynthDataset(Dataset):
         signal = self._mix_down_if_necessary(signal)
         midi = self._get_audio_sample_midi(index)
         fund_freq = self._get_fundamental_freq(midi)
-        return signal, label, audio_sample_path, fund_freq
+        attack_time = self._get_attack_time_from_waveform(signal)
+        return signal, label, audio_sample_path, fund_freq, attack_time
 
     def _resample_if_necessary(self, signal, sr):
         if sr != self.target_sample_rate:
@@ -61,6 +62,23 @@ class NSynthDataset(Dataset):
     def _get_fundamental_freq(self, midi):
         return 440*2**((midi-69)/12)
 
+    def _get_attack_time_from_waveform(self, signal):
+        # First, calculate max amplitude of the waveform.
+        w = signal.numpy()[0]
+        max_amp = max(w[0:SAMPLE_RATE])
+        max_amp_idx = list(w).index(max_amp)
+        # Then, find when the waveform first gets to 10 percent of that amplitude
+        for idx, i in enumerate(w):
+            if i > max_amp / 10:
+                ten_percent_idx = idx
+                break
+        # Then, do the same thing but for 90 percent
+        for idx, i in enumerate(w):
+            if i > 9 * max_amp / 10:
+                ninety_percent_idx = idx
+                break
+        attack_time = (ninety_percent_idx - ten_percent_idx) / SAMPLE_RATE
+        return attack_time
 
     def get_random_annotation(self):
         return random.choice(list(self.annotations.items()))[1]
@@ -160,7 +178,7 @@ def get_harm_bins_from_spectrogram(specgram):
     bin_avg_amp = {}
     # First, find the fundamental - this can be optimized
     # This method breaks when a harmonic is louder than the fundamental.
-    for i in range(500):
+    for i in range(len(s[0])):
         cum = 0
         for j in s[i]:
             cum = cum + j
@@ -182,23 +200,18 @@ def get_harm_bins_from_spectrogram(specgram):
     return bins_list
 
 
-def get_attack_time_from_waveform(waveform):
-    # First, calculate max amplitude of the waveform.
-    w = waveform.numpy()[0]
-    max_amp = max(w[0:SAMPLE_RATE])
-    max_amp_idx = list(w).index(max_amp)
-    # Then, find when the waveform first gets to 10 percent of that amplitude
-    for idx, i in enumerate(w):
-        if i > max_amp/10:
-            ten_percent_idx = idx
-            break
-    # Then, do the same thing but for 90 percent
-    for idx, i in enumerate(w):
-        if i > 9*max_amp/10:
-            ninety_percent_idx = idx
-            break
-    attack_time = (ninety_percent_idx-ten_percent_idx)/SAMPLE_RATE
-    return attack_time
+def get_log_amplitudes_from_bin(bins_list, specgram):
+    s = specgram.numpy()
+    bin_amp_dict = {}
+    for i in bins_list:
+        amp_list = []
+        for j in s[i]:
+            if j != 0:
+                amp_list.append(np.log(j))
+            else:
+                amp_list.append(0)
+        bin_amp_dict[i] = amp_list
+    return bin_amp_dict
 
 
 if __name__ == '__main__':
@@ -211,7 +224,7 @@ if __name__ == '__main__':
     data = NSynthDataset(json_dict, "./nsynth-train/audio", SAMPLE_RATE)
 
     random_number = random.randint(0, len(json_dict) - 1)
-    signal, label, path, fund_freq = data[random_number]
+    signal, label, path, fund_freq, atk_time = data[random_number]
     print(label)
 
     n_fft = 1024
@@ -249,10 +262,11 @@ if __name__ == '__main__':
         norm="slaney"
     )
 
-    atk_time = get_attack_time_from_waveform(signal)
     print("atk_time: ", atk_time)
     harm_bins = get_harm_bins_from_spectrogram(spec[0])
     print("harm_bins: ", harm_bins)
+    harm_amps = get_log_amplitudes_from_bin(harm_bins, spec[0])
+    print("harm amps: ", harm_amps)
     print("fundamental_freq: ", fund_freq)
 
 
