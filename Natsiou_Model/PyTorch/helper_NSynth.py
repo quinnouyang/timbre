@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 import torch
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 from IPython.display import Audio
 
 
@@ -196,6 +197,25 @@ def get_harm_bins_from_spectrogram(specgram):
     return bins_list
 
 
+def get_attack_time_from_waveform(waveform):
+    # First, calculate max amplitude of the waveform.
+    w = waveform.numpy()[0]
+    max_amp = max(w[0:SAMPLE_RATE])
+    max_amp_idx = list(w).index(max_amp)
+    # Then, find when the waveform first gets to 10 percent of that amplitude
+    for idx, i in enumerate(w):
+        if i > max_amp/10:
+            ten_percent_idx = idx
+            break
+    # Then, do the same thing but for 90 percent
+    for idx, i in enumerate(w):
+        if i > 9*max_amp/10:
+            ninety_percent_idx = idx
+            break
+    attack_time = (ninety_percent_idx-ten_percent_idx)/SAMPLE_RATE
+    return attack_time
+
+
 if __name__ == '__main__':
     SAMPLE_RATE = 16000
     json_dict = parse_json_metadata()
@@ -243,8 +263,9 @@ if __name__ == '__main__':
         norm="slaney"
     )
 
+    atk_time = get_attack_time_from_waveform(signal)
+    print(atk_time)
     harm_bins = get_harm_bins_from_spectrogram(spec[0])
-    print(harm_bins)
 
     # fig, axs = plt.subplots(3, 1)
     # plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
