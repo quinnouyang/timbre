@@ -9,3 +9,5 @@ __pycache__
 
 # Miscellaneous
 **/.DS_Store
+/Natsiou_Model/PyTorch/nsynth-train/
+/Natsiou_Model/PyTorch/data/
