@@ -17,6 +17,7 @@ from helper_plotting import plot_images_sampled_from_vae
 ### MODEL
 ##########################
 
+
 class Reshape(nn.Module):
     def __init__(self, *args):
         super().__init__()
@@ -63,7 +64,7 @@ class VAE(nn.Module):
             nn.LeakyReLU(0.01),
             nn.ConvTranspose2d(32, 1, stride=(1, 1), kernel_size=(3, 3), padding=0),
             Trim(),  # 1x29x29 -> 1x28x28
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
     def encoding_fn(self, x):
@@ -74,7 +75,7 @@ class VAE(nn.Module):
 
     def reparameterize(self, z_mu, z_log_var):
         eps = torch.randn(z_mu.size(0), z_mu.size(1)).to(z_mu.device)
-        z = z_mu + eps * torch.exp(z_log_var / 2.)
+        z = z_mu + eps * torch.exp(z_log_var / 2.0)
         return z
 
     def forward(self, x):
@@ -85,15 +86,17 @@ class VAE(nn.Module):
         return encoded, z_mean, z_log_var, decoded
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     ##########################
     ### SETTINGS
     ##########################
 
     # Device
     CUDA_DEVICE_NUM = 1
-    DEVICE = torch.device(f'cuda:{CUDA_DEVICE_NUM}' if torch.cuda.is_available() else 'cpu')
-    print('Device:', DEVICE)
+    DEVICE = torch.device(
+        f"cuda:{CUDA_DEVICE_NUM}" if torch.cuda.is_available() else "cpu"
+    )
+    print("Device:", DEVICE)
 
     # Hyperparameters
     RANDOM_SEED = 123
@@ -109,31 +112,30 @@ if __name__ == '__main__':
     ##########################
 
     train_loader, valid_loader, test_loader = get_dataloaders_mnist(
-        batch_size=BATCH_SIZE,
-        num_workers=2,
-        validation_fraction=0.)
+        batch_size=BATCH_SIZE, num_workers=2, validation_fraction=0.0
+    )
 
     # Checking the dataset
-    print('Training Set:\n')
+    print("Training Set:\n")
     for images, labels in train_loader:
-        print('Image batch dimensions:', images.size())
-        print('Image label dimensions:', labels.size())
+        print("Image batch dimensions:", images.size())
+        print("Image label dimensions:", labels.size())
         print(labels[:10])
         break
 
     # Checking the dataset
-    print('\nValidation Set:')
+    print("\nValidation Set:")
     for images, labels in valid_loader:
-        print('Image batch dimensions:', images.size())
-        print('Image label dimensions:', labels.size())
+        print("Image batch dimensions:", images.size())
+        print("Image label dimensions:", labels.size())
         print(labels[:10])
         break
 
     # Checking the dataset
-    print('\nTesting Set:')
+    print("\nTesting Set:")
     for images, labels in test_loader:
-        print('Image batch dimensions:', images.size())
-        print('Image label dimensions:', labels.size())
+        print("Image batch dimensions:", images.size())
+        print("Image label dimensions:", labels.size())
         print(labels[:10])
         break
 
@@ -144,13 +146,27 @@ if __name__ == '__main__':
 
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    log_dict = train_vae_v1(num_epochs=NUM_EPOCHS, model=model,
-                            optimizer=optimizer, device=DEVICE,
-                            train_loader=train_loader,
-                            skip_epoch_stats=True,
-                            logging_interval=50)
+    log_dict = train_vae_v1(
+        num_epochs=NUM_EPOCHS,
+        model=model,
+        optimizer=optimizer,
+        device=DEVICE,
+        train_loader=train_loader,
+        skip_epoch_stats=True,
+        logging_interval=50,
+    )
 
-    plot_training_loss(log_dict['train_reconstruction_loss_per_batch'], NUM_EPOCHS, custom_label=" (reconstruction)")
-    plot_training_loss(log_dict['train_kl_loss_per_batch'], NUM_EPOCHS, custom_label=" (KL)")
-    plot_training_loss(log_dict['train_combined_loss_per_batch'], NUM_EPOCHS, custom_label=" (combined)")
+    plot_training_loss(
+        log_dict["train_reconstruction_loss_per_batch"],
+        NUM_EPOCHS,
+        custom_label=" (reconstruction)",
+    )
+    plot_training_loss(
+        log_dict["train_kl_loss_per_batch"], NUM_EPOCHS, custom_label=" (KL)"
+    )
+    plot_training_loss(
+        log_dict["train_combined_loss_per_batch"],
+        NUM_EPOCHS,
+        custom_label=" (combined)",
+    )
     plt.show()

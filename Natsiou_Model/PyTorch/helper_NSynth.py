@@ -18,7 +18,6 @@ from IPython.display import Audio
 
 
 class NSynthDataset(Dataset):
-
     def __init__(self, annotations_json, audio_dir, target_sample_rate):
         self.annotations = annotations_json
         self.audio_dir = audio_dir
@@ -50,7 +49,12 @@ class NSynthDataset(Dataset):
         return signal
 
     def _get_audio_sample_path(self, index):
-        path = self.audio_dir + "/" + list(self.annotations.items())[index][1]["note_str"] + ".wav"
+        path = (
+            self.audio_dir
+            + "/"
+            + list(self.annotations.items())[index][1]["note_str"]
+            + ".wav"
+        )
         return path
 
     def _get_audio_sample_label(self, index):
@@ -60,7 +64,7 @@ class NSynthDataset(Dataset):
         return list(self.annotations.items())[index][1]["pitch"]
 
     def _get_fundamental_freq(self, midi):
-        return 440*2**((midi-69)/12)
+        return 440 * 2 ** ((midi - 69) / 12)
 
     def _get_attack_time_from_waveform(self, signal):
         # First, calculate max amplitude of the waveform.
@@ -101,7 +105,7 @@ def parse_json_metadata():
 def filter_json_metadata_pitch(old_dict):
     new_dict = {}
     for key in old_dict.keys():
-        if old_dict[key]['pitch'] < 40 or old_dict[key]['pitch'] > 96:
+        if old_dict[key]["pitch"] < 40 or old_dict[key]["pitch"] > 96:
             pass
         else:
             new_dict[key] = old_dict[key]
@@ -112,15 +116,17 @@ def filter_json_metadata_pitch(old_dict):
 def filter_json_metadata_instrument_family(old_dict):
     new_dict = {}
     for key in old_dict.keys():
-        if (old_dict[key]['instrument_family_str'] == 'bass' or
-                old_dict[key]['instrument_family_str'] == 'brass' or
-                old_dict[key]['instrument_family_str'] == 'flute' or
-                old_dict[key]['instrument_family_str'] == 'guitar' or
-                old_dict[key]['instrument_family_str'] == 'keyboard' or
-                old_dict[key]['instrument_family_str'] == 'organ' or
-                old_dict[key]['instrument_family_str'] == 'reed' or
-                old_dict[key]['instrument_family_str'] == 'string' or
-                old_dict[key]['instrument_family_str'] == 'vocal'):
+        if (
+            old_dict[key]["instrument_family_str"] == "bass"
+            or old_dict[key]["instrument_family_str"] == "brass"
+            or old_dict[key]["instrument_family_str"] == "flute"
+            or old_dict[key]["instrument_family_str"] == "guitar"
+            or old_dict[key]["instrument_family_str"] == "keyboard"
+            or old_dict[key]["instrument_family_str"] == "organ"
+            or old_dict[key]["instrument_family_str"] == "reed"
+            or old_dict[key]["instrument_family_str"] == "string"
+            or old_dict[key]["instrument_family_str"] == "vocal"
+        ):
             new_dict[key] = old_dict[key]
     print("Instrument filtered sample set size: ", "->", len(new_dict))
     return new_dict
@@ -129,12 +135,14 @@ def filter_json_metadata_instrument_family(old_dict):
 def filter_json_metadata_quality(old_dict):
     new_dict = {}
     for key in old_dict.keys():
-        if ("percussive" in old_dict[key]['qualities_str'] or
-                "fast_decay" in old_dict[key]['qualities_str'] or
-                "long_release" in old_dict[key]['qualities_str'] or
-                "multiphonic" in old_dict[key]['qualities_str'] or
-                "tempo-synced" in old_dict[key]['qualities_str'] or
-                "nonlinear_env" in old_dict[key]['qualities_str']):
+        if (
+            "percussive" in old_dict[key]["qualities_str"]
+            or "fast_decay" in old_dict[key]["qualities_str"]
+            or "long_release" in old_dict[key]["qualities_str"]
+            or "multiphonic" in old_dict[key]["qualities_str"]
+            or "tempo-synced" in old_dict[key]["qualities_str"]
+            or "nonlinear_env" in old_dict[key]["qualities_str"]
+        ):
             pass
         else:
             new_dict[key] = old_dict[key]
@@ -162,7 +170,12 @@ def plot_spectrogram(specgram, title=None, ylabel="freq_bin", ax=None):
     if title is not None:
         ax.set_title(title)
     ax.set_ylabel(ylabel)
-    ax.imshow(librosa.power_to_db(specgram), origin="lower", aspect="auto", interpolation="nearest")
+    ax.imshow(
+        librosa.power_to_db(specgram),
+        origin="lower",
+        aspect="auto",
+        interpolation="nearest",
+    )
 
 
 def plot_fbank(fbank, title=None):
@@ -182,19 +195,19 @@ def get_harm_bins_from_spectrogram(specgram):
         cum = 0
         for j in s[i]:
             cum = cum + j
-        bin_avg_amp[i] = cum/len(s[i])
+        bin_avg_amp[i] = cum / len(s[i])
     fund_bin = max(bin_avg_amp, key=bin_avg_amp.get)
     bins_list = [fund_bin]
     # Next guess that the bins of higher freqs are multiples of the first bin.
     for i in range(2, 8):
         bin_guess = fund_bin * i + 1
-        for j in range(round(-bin_guess/10), round(bin_guess/10)):
+        for j in range(round(-bin_guess / 10), round(bin_guess / 10)):
             cum = 0
             bin_avg_amp = {}
             if (bin_guess + j) < 500:
-                for k in s[bin_guess+j]:
+                for k in s[bin_guess + j]:
                     cum = cum + k
-                bin_avg_amp[bin_guess+j] = cum/len(s[bin_guess+j])
+                bin_avg_amp[bin_guess + j] = cum / len(s[bin_guess + j])
         local_max = max(bin_avg_amp, key=bin_avg_amp.get)
         bins_list.append(local_max)
     return bins_list
@@ -214,7 +227,7 @@ def get_log_amplitudes_from_bin(bins_list, specgram):
     return bin_amp_dict
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     SAMPLE_RATE = 16000
     json_dict = parse_json_metadata()
     json_dict = filter_json_metadata_pitch(json_dict)
@@ -248,7 +261,7 @@ if __name__ == '__main__':
         power=2.0,
         norm="slaney",
         n_mels=n_mels,
-        mel_scale="htk"
+        mel_scale="htk",
     )
 
     melspec = mel_spectrogram(signal)
@@ -259,7 +272,7 @@ if __name__ == '__main__':
         f_min=0.0,
         f_max=SAMPLE_RATE / 2.0,
         sample_rate=SAMPLE_RATE,
-        norm="slaney"
+        norm="slaney",
     )
 
     print("atk_time: ", atk_time)
@@ -268,7 +281,6 @@ if __name__ == '__main__':
     harm_amps = get_log_amplitudes_from_bin(harm_bins, spec[0])
     print("harm amps: ", harm_amps)
     print("fundamental_freq: ", fund_freq)
-
 
     # fig, axs = plt.subplots(3, 1)
     # plot_waveform(signal, SAMPLE_RATE, title="Original waveform", ax=axs[0])
