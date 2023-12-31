@@ -113,8 +113,6 @@ doi={10.1007/978-3-031-13909-3_10},
     annote = {It is shown that Variational Auto-Encoders (VAE) can bridge the lines of research and alleviate their weaknesses by regularizing the latent spaces to match perceptual distances collected from timbre studies by proposing three types of regularization and showing that these spaces can be used for efficient audio classification.}
 }
 
-
-
 @article{DBLP:journals/corr/abs-2111-05011,
     author       = {Antoine Caillon and
                     Philippe Esling},
@@ -179,7 +177,7 @@ doi={10.1007/978-3-031-13909-3_10},
     issn = {0001-4966},
     doi = {10.1121/1.5141369},
     url = {https://doi.org/10.1121/1.5141369},
-    eprint = {https://pubs.aip.org/asa/jasa/article-pdf/146/6/EL523/13669198/el523\_1\_online.pdf},
+    eprint = {https://pubs.aip.org/asa/jasa/article-pdf/146/6/EL523/13669198/el523_1_online.pdf},
 }
 
 @article{62c6b59f-3b29-3804-a95c-db9a1e9c1036,
@@ -235,6 +233,98 @@ doi={10.1007/978-3-031-13909-3_10},
     url={https://doi.org/10.1007/s00521-020-05424-2}
 }
 
+@misc{kreuk2023audiogen,
+    title={AudioGen: Textually Guided Audio Generation}, 
+    author={Felix Kreuk and Gabriel Synnaeve and Adam Polyak and Uriel Singer and Alexandre Défossez and Jade Copet and Devi Parikh and Yaniv Taigman and Yossi Adi},
+    year={2023},
+    eprint={2209.15352},
+    archivePrefix={arXiv},
+    primaryClass={cs.SD},
+    annote={We tackle the problem of generating audio samples conditioned on descriptive text captions. In this work, we propose AaudioGen, an auto-regressive generative model that generates audio samples conditioned on text inputs. AudioGen operates on a learnt discrete audio representation. The task of text-to-audio generation poses multiple challenges. Due to the way audio travels through a medium, differentiating ``objects'' can be a difficult task (e.g., separating multiple people simultaneously speaking). This is further complicated by real-world recording conditions (e.g., background noise, reverberation, etc.). Scarce text annotations impose another constraint, limiting the ability to scale models. Finally, modeling high-fidelity audio requires encoding audio at high sampling rate, leading to extremely long sequences. To alleviate the aforementioned challenges we propose an augmentation technique that mixes different audio samples, driving the model to internally learn to separate multiple sources. We curated 10 datasets containing different types of audio and text annotations to handle the scarcity of text-audio data points. For faster inference, we explore the use of multi-stream modeling, allowing the use of shorter sequences while maintaining a similar bitrate and perceptual quality. We apply classifier-free guidance to improve adherence to text. Comparing to the evaluated baselines, AudioGen outperforms over both objective and subjective metrics. Finally, we explore the ability of the proposed method to generate audio continuation conditionally and unconditionally. Samples: https://felixkreuk.github.io/audiogen/}
+}
 
+@misc{copet2023simple,
+    title={Simple and Controllable Music Generation}, 
+    author={Jade Copet and Felix Kreuk and Itai Gat and Tal Remez and David Kant and Gabriel Synnaeve and Yossi Adi and Alexandre Défossez},
+    year={2023},
+    eprint={2306.05284},
+    archivePrefix={arXiv},
+    primaryClass={cs.SD},
+    annote={We tackle the task of conditional music generation. We introduce MusicGen, a single Language Model (LM) that operates over several streams of compressed discrete music representation, i.e., tokens. Unlike prior work, MusicGen is comprised of a single-stage transformer LM together with efficient token interleaving patterns, which eliminates the need for cascading several models, e.g., hierarchically or upsampling. Following this approach, we demonstrate how MusicGen can generate high-quality samples, both mono and stereo, while being conditioned on textual description or melodic features, allowing better controls over the generated output. We conduct extensive empirical evaluation, considering both automatic and human studies, showing the proposed approach is superior to the evaluated baselines on a standard text-to-music benchmark. Through ablation studies, we shed light over the importance of each of the components comprising MusicGen. Music samples, code, and models are available at this https URL: https://github.com/facebookresearch/audiocraft.}
+}
 
+@misc{huang2022mulan,
+    title={MuLan: A Joint Embedding of Music Audio and Natural Language}, 
+    author={Qingqing Huang and Aren Jansen and Joonseok Lee and Ravi Ganti and Judith Yue Li and Daniel P. W. Ellis},
+    year={2022},
+    eprint={2208.12415},
+    archivePrefix={arXiv},
+    primaryClass={eess.AS},
+    annote={Music tagging and content-based retrieval systems have traditionally been constructed using pre-defined ontologies covering a rigid set of music attributes or text queries. This paper presents MuLan: a first attempt at a new generation of acoustic models that link music audio directly to unconstrained natural language music descriptions. MuLan takes the form of a two-tower, joint audio-text embedding model trained using 44 million music recordings (370K hours) and weakly-associated, free-form text annotations. Through its compatibility with a wide range of music genres and text styles (including conventional music tags), the resulting audio-text representation subsumes existing ontologies while graduating to true zero-shot functionalities. We demonstrate the versatility of the MuLan embeddings with a range of experiments including transfer learning, zero-shot music tagging, language understanding in the music domain, and cross-modal retrieval applications.}
+}
 
+@misc{agostinelli2023musiclm,
+    title={MusicLM: Generating Music From Text}, 
+    author={Andrea Agostinelli and Timo I. Denk and Zalán Borsos and Jesse Engel and Mauro Verzetti and Antoine Caillon and Qingqing Huang and Aren Jansen and Adam Roberts and Marco Tagliasacchi and Matt Sharifi and Neil Zeghidour and Christian Frank},
+    year={2023},
+    eprint={2301.11325},
+    archivePrefix={arXiv},
+    primaryClass={cs.SD}
+}
+
+@article{akmanaudio,
+    title={Audio Explainable Artificial Intelligence: A Review},
+    author={Akman, Alican and Schuller, Bj{\"o}rn W},
+    year={2023},
+    journal={Intelligent Computing},
+    publisher={AAAS},
+    annote={Artificial intelligence (AI) capabilities have grown rapidly with the introduction of cutting7 edge deep-model architectures and learning strategies. Explainable AI (XAI) methods aim to 8 make the capabilities of AI models beyond accuracy interpretable by providing explanations. 9 The explanations are mainly used to increase model transparency, debug the model, and justify 10 the model predictions to the end user. Most current XAI methods focus on providing visual and 11 textual explanations that are prone to being present in visual media. However, audio explana12 tions are crucial because of their intuitiveness in audio-based tasks and higher expressiveness 13 than other modalities in specific scenarios, such as when understanding visual explanations re14 quires expertise. In this review, we provide an overview of XAI methods for audio in 2 categories: 15 exploiting generic XAI methods to explain audio models, and XAI methods specialised for the 16 interpretability of audio models. Additionally, we discuss certain open problems and highlight 17 future directions for the development of XAI techniques for audio modeling.}
+}
+
+@misc{caillon2020timbre,
+    title={Timbre latent space: exploration and creative aspects}, 
+    author={Antoine Caillon and Adrien Bitton and Brice Gatinet and Philippe Esling},
+    year={2020},
+    eprint={2008.01370},
+    archivePrefix={arXiv},
+    primaryClass={cs.SD},
+    annote={Recent studies show the ability of unsupervised models to learn invertible audio representations using Auto-Encoders. They enable high-quality sound synthesis but a limited control since the latent spaces do not disentangle timbre properties. The emergence of disentangled representations was studied in Variational Auto-Encoders (VAEs), and has been applied to audio. Using an additional perceptual regularization can align such latent representation with the previously established multi-dimensional timbre spaces, while allowing continuous inference and synthesis. Alternatively, some specific sound attributes can be learned as control variables while unsupervised dimensions account for the remaining features. New possibilities for timbre manipulations are enabled with generative neural networks, although the exploration and the creative use of their representations remain little. The following experiments are led in cooperation with two composers and propose new creative directions to explore latent sound synthesis of musical timbres, using specifically designed interfaces (Max/MSP, Pure Data) or mappings for descriptor-based synthesis.}
+}
+
+@phdthesis{zacharakis,
+  author      = {Asterios Zacharakis},
+  school      = {Queen Mary University of London},
+  title       = {2013},
+  year        = {2013},
+  url         = {https://core.ac.uk/download/pdf/77038895.pdf},
+  annote      = {Musical timbre is a complex and multidimensional entity which provides information regarding the properties of a sound source (size, material, etc.). When it comes to music, however, timbre does not merely carry environmental information, but it also conveys aesthetic meaning. In this sense, semantic description of musical tones is used to express perceptual concepts related to artistic intention. Recent advances in sound processing and synthesis technology have enabled the production of unique timbral qualities which cannot be easily associated with a familiar musical instrument. Therefore, verbal description of these qualities facilitates communication between musicians, composers, producers, audio engineers etc. The development of a common semantic framework for musical timbre description could be exploited by intuitive sound synthesis and processing systems and could even influence the way in which music is being consumed.
+  This work investigates the relationship between musical timbre perception and its semantics. A set of listening experiments in which participants from two different language groups (Greek and English) rated isolated musical tones on semantic scales has tested semantic universality of musical timbre. The results suggested that the salient semantic dimensions of timbre, namely: luminance, texture and mass, are indeed largely common between these two languages. The relationship between semantics and perception was further examined by comparing the previously identified semantic space with a perceptual timbre space (resulting from pairwise dissimilarity rating of the same stimuli). The two spaces featured a substantial amount of common variance suggesting that semantic description can largely capture timbre perception. Additionally, the acoustic correlates of the semantic and perceptual dimensions were investigated. This work concludes by introducing the concept of partial timbre through a listening experiment that demonstrates the influence of background white noise on the perception of musical tones. The results show that timbre is a relative percept which is influenced by the auditory environment.}
+}
+
+@misc{fortuin2019somvae,
+    title={SOM-VAE: Interpretable Discrete Representation Learning on Time Series}, 
+    author={Vincent Fortuin and Matthias Hüser and Francesco Locatello and Heiko Strathmann and Gunnar Rätsch},
+    year={2019},
+    eprint={1806.02199},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG},
+    annote={High-dimensional time series are common in many domains. Since human cognition is not optimized to work well in high-dimensional spaces, these areas could benefit from interpretable low-dimensional representations. However, most representation learning algorithms for time series data are difficult to interpret. This is due to non-intuitive mappings from data features to salient properties of the representation and non-smoothness over time. To address this problem, we propose a new representation learning framework building on ideas from interpretable discrete dimensionality reduction and deep generative modeling. This framework allows us to learn discrete representations of time series, which give rise to smooth and interpretable embeddings with superior clustering performance. We introduce a new way to overcome the non-differentiability in discrete representation learning and present a gradient-based version of the traditional self-organizing map algorithm that is more performant than the original. Furthermore, to allow for a probabilistic interpretation of our method, we integrate a Markov model in the representation space. This model uncovers the temporal transition structure, improves clustering performance even further and provides additional explanatory insights as well as a natural representation of uncertainty. We evaluate our model in terms of clustering performance and interpretability on static (Fashion-)MNIST data, a time series of linearly interpolated (Fashion-)MNIST images, a chaotic Lorenz attractor system with two macro states, as well as on a challenging real world medical time series application on the eICU data set. Our learned representations compare favorably with competitor methods and facilitate downstream tasks on the real world data.}
+}
+
+@misc{liu2020visually,
+    title={Towards Visually Explaining Variational Autoencoders}, 
+    author={Wenqian Liu and Runze Li and Meng Zheng and Srikrishna Karanam and Ziyan Wu and Bir Bhanu and Richard J. Radke and Octavia Camps},
+    year={2020},
+    eprint={1911.07389},
+    archivePrefix={arXiv},
+    primaryClass={cs.CV},
+    annote={Recent advances in Convolutional Neural Network (CNN) model interpretability have led to impressive progress in visualizing and understanding model predictions. In particular, gradient-based visual attention methods have driven much recent effort in using visual attention maps as a means for visual explanations. A key problem, however, is these methods are designed for classification and categorization tasks, and their extension to explaining generative models, e.g. variational autoencoders (VAE) is not trivial. In this work, we take a step towards bridging this crucial gap, proposing the first technique to visually explain VAEs by means of gradient-based attention. We present methods to generate visual attention from the learned latent space, and also demonstrate such attention explanations serve more than just explaining VAE predictions. We show how these attention maps can be used to localize anomalies in images, demonstrating state-of-the-art performance on the MVTec-AD dataset. We also show how they can be infused into model training, helping bootstrap the VAE into learning improved latent space disentanglement, demonstrated on the Dsprites dataset.}
+}
+
+@misc{phillips2021principles,
+  author       = {P. Jonathon Phillips and Carina A. Hahn and Peter C. Fontana and Amy N. Yates and Kristen Greene and David A. Broniatowski and Mark A. Przybocki},
+  title        = {Four Principles of Explainable Artificial Intelligence},
+  year         = {2021},
+  url          = {https://doi.org/10.6028/NIST.IR.8312},
+  annote       = {We introduce four principles for explainable artificial intelligence (AI) that comprise fundamental properties for explainable AI systems. We propose that explainable AI systems deliver accompanying evidence or reasons for outcomes and processes; provide explanations that are understandable to individual users; provide explanations that correctly reflect the system’s process for generating the output; and that a system only operates under conditions for which it was designed and when it reaches sufficient confidence in its output. We have termed these four principles as explanation, meaningful, explanation accuracy, and knowledge limits, respectively. Through significant stakeholder engagement, these four principles were developed to encompass the multidisciplinary nature of explainable AI, including the fields of computer science, engineering, and psychology. Because one-sizefits-all explanations do not exist, different users will require different types of explanations. We present five categories of explanation and summarize theories of explainable AI. We give an overview of the algorithms in the field that cover the major classes of explainable algorithms. As a baseline comparison, we assess how well explanations provided by people follow our four principles. This assessment provides insights to the challenges of designing explainable AI systems.}
+}
