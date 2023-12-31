@@ -11,3 +11,15 @@ __pycache__
 **/.DS_Store
 /Natsiou_Model/PyTorch/nsynth-train/
 /Natsiou_Model/PyTorch/data/
+
+# LaTeX
+**/*.aux
+**/*.bst
+**/*.bbl
+**/*.blg
+**/*.fdb_latexmk
+**/*.fls
+**/*.log
+**/*.out
+**/*.synctex.gz
+!**/out/*.pdf
