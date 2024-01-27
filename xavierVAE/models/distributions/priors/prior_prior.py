@@ -6,9 +6,8 @@ Created on Mon Aug  6 23:27:11 2018
 @author: chemla
 """
 import torch.distributions as dist
-from numpy import ones, ndarray
-from torch import from_numpy, Tensor, index_select, LongTensor, cat, zeros, ones
-from torch.autograd import Variable
+from numpy import ndarray
+from torch import from_numpy, index_select, zeros
 from xavierVAE.utils.oneHot import fromOneHot
 import random
 import pdb

@@ -3,15 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from functools import reduce
 
-from mpl_toolkits.mplot3d import Axes3D
-import xavierVAE.visualize.visualize_dimred as dr
-from xavierVAE.utils.oneHot import fromOneHot
 import matplotlib.patches as mpatches
 
+# UTILS
 
-################################################
-########        UTILS
-####
 
 def get_cmap(n, color_map='plasma'):
     return plt.cm.get_cmap(color_map, n)

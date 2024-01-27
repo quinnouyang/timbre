@@ -1,5 +1,4 @@
-import torch, pdb
-from torch.autograd import Variable
+import torch
 
 import torch.distributions as dist
 

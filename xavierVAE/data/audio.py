@@ -20,13 +20,11 @@ except:
 import numpy as np
 import scipy as sp
 import os
-import math
 import re
 
 # Package-specific import
 from . import utils as du
 from . import generic
-# from .signal.transforms import computeTransform
 from librosa import load as lbload
 
 """

@@ -6,7 +6,8 @@ Created on Mon May 28 17:10:03 2018
 @author: chemla
 """
 
-import os, os.path
+import os
+import os.path
 from .audio import DatasetAudio
 
 

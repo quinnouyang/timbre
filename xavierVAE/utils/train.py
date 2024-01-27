@@ -5,7 +5,8 @@ Created on Mon May 28 17:54:24 2018
 
 @author: chemla
 """
-import torch, os, pdb, copy
+import torch
+import os
 from xavierVAE.utils.dataloader import DataLoader
 
 import xavierVAE.visualize.visualize_plotting as lplt

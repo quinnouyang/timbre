@@ -1,21 +1,13 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Fri Dec  8 19:19:14 2017
 
 @author: chemla
 """
-# import torch
-# from torch.autograd import Variable
 
-import torch
-from torch.autograd import Variable
 import numpy as np
 import sklearn.manifold as manifold
 import sklearn.decomposition as decomposition
-from mpl_toolkits.mplot3d import Axes3D
-from xavierVAE.utils.oneHot import fromOneHot
-import matplotlib.patches as mpatches
 
 try:
     from matplotlib import pyplot as plt
@@ -25,13 +17,8 @@ except:
     matplotlib.use('agg')
     from matplotlib import pyplot as plt
 
-from numpy.random import permutation
-from xavierVAE.utils.oneHot import oneHot
 
-
-#######################################################################
-##########      Transformations
-###
+# Transformations
 
 class Embedding(object):
     def __init__(self, *args, **kwargs):
@@ -137,4 +124,3 @@ class LatentManifold(Manifold):
             self.orig_z = model.platent[layer]['dist'](*out[layer]).sample()
         self.orig_z = self.orig_z.cpu().detach().numpy()
         self.z = transformation.fit_transform(self.orig_z)
-

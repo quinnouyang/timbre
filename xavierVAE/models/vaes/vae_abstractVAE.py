@@ -9,9 +9,6 @@ import torch.nn as nn
 from collections import OrderedDict
 from xavierVAE.utils import oneHot
 
-
-# import visualize.dimension_reduction as dr
-
 class AbstractVAE(nn.Module):
 
     #############################################

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import pdb
 from numpy.random import permutation
 import numpy as np
 

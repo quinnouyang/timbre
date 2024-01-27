@@ -1,12 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Fri Jul  6 20:26:17 2018
 
 @author: chemla
 """
 
-import copy, pdb
+import copy
 import numpy as np
 
 

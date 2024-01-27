@@ -2,7 +2,7 @@
 
 import torch.distributions as dist
 from numpy import zeros, ones, ndarray
-from torch import from_numpy, Tensor, index_select, LongTensor, cat
+from torch import from_numpy, Tensor, index_select
 from torch.autograd import Variable
 from xavierVAE.utils.oneHot import fromOneHot
 import random

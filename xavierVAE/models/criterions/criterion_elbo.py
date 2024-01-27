@@ -1,4 +1,4 @@
-import torch, pdb
+import torch
 import numpy as np
 from . import log_density, kld
 from ..distributions.priors import IsotropicGaussian

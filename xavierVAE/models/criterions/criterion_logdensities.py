@@ -1,6 +1,5 @@
-import torch, pdb
+import torch
 from torch.nn import functional as F
-from torch.autograd import Variable
 
 from numpy import pi, log
 import torch.distributions as dist

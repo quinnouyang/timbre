@@ -60,9 +60,8 @@
 
 """
 
-import re, pdb
+import re
 import numpy as np
-from os import walk
 from os import path
 import os
 # Package-specific imports

@@ -2,11 +2,8 @@
 
 import torch.distributions as dist
 from .prior_prior import Prior, ClassPrior
-from numpy import ones, ndarray
-from torch import from_numpy, Tensor, index_select, LongTensor, cat, zeros, ones
-from torch.autograd import Variable
-from xavierVAE.utils.oneHot import fromOneHot
-import random
+from numpy import ones
+from torch import zeros, ones
 
 
 class IsotropicGaussian(Prior):
