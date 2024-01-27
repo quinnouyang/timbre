@@ -12,7 +12,7 @@ from xavierVAE.utils.dataloader import DataLoader
 import xavierVAE.visualize.visualize_plotting as lplt
 from xavierVAE.visualize.visualize_dimred import PCA
 
-import torchvision
+# import torchvision
 import numpy as np
 
 import matplotlib.pyplot as plt
@@ -166,8 +166,8 @@ def train_model(dataset, model, loss, task=None, loss_task=None, options={}, plo
             else:
                 metadata = None
             out = model.pinput[0]['dist'](*model.forward(images, y=metadata)['x_params'][0]).mean
-            torchvision.utils.save_image(out.reshape(out.size(0), 1, 28, 28), figures_folder + 'grid_%d.png' % epoch,
-                                         nrow=nb_reconstructions)
+            # torchvision.utils.save_image(out.reshape(out.size(0), 1, 28, 28), figures_folder + 'grid_%d.png' % epoch,
+            #                              nrow=nb_reconstructions)
 
     model.save('%s/%s_final.t7' % (results_folder, name), loss=loss, epoch=epoch, partitions=dataset.partitions,
                **save_with)

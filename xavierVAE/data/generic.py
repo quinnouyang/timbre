@@ -67,10 +67,10 @@ import os
 # Package-specific imports
 from .metadata import metadataCallbacks
 from .utils import tensorDifference, tensorIntersect
-import torch.utils.data
+import torch.utils.data as tud
 
 
-class Dataset(torch.utils.data.Dataset):
+class Dataset(tud.Dataset):
     """
 
     Definition of a basic dataset object
@@ -183,9 +183,9 @@ class Dataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         if type(idx) == str:
-            if not idx in self.partitions.keys():
+            if idx not in self.partitions.keys():
                 raise IndexError('%s is not a partition of current dataset' % idx)
-            return torch.utils.data.dataset.Subset(self, self.partitions[idx])
+            return tud.dataset.Subset(self, self.partitions[idx])
         else:
             item = self.data[idx]
             return item
@@ -746,15 +746,6 @@ class Dataset(torch.utils.data.Dataset):
         self.__class__ = DatasetPytorch
         return self
 
-    def toTensorflow(self):
-        """Tensorflow is more tricky, need actual transfer of properties """
-        tupFeat = ()
-        for t in dir(self):
-            tupFeat = tupFeat + self.t
-        tmpSet = DatasetTensorflow.createTFDataset(tupFeat)
-        tmpSet.__class__ = DatasetTensorflow
-        return tmpSet
-
     def __dir__(self):
         return ['dataDirectory', 'analysisDirectory', 'metadataDirectory',
                 'dataPrefix', 'types', 'tasks', 'partitions', 'hash',
@@ -800,7 +791,6 @@ class Dataset(torch.utils.data.Dataset):
 # Pytorch dataset
 ###################################
 """
-import torch.utils.data as tud
 
 
 class DatasetPytorch(Dataset, tud.Dataset):
@@ -841,21 +831,21 @@ class DatasetPytorch(Dataset, tud.Dataset):
 ###################################
 """
 
-try:
-    import tensorflow.contrib.data as tfd
-
-
-    class DatasetTensorflow(Dataset, tfd.Dataset):
-        """ Definition of a basic dataset
-        Attributes:
-            dataDirectory:
-        """
-
-        def __init__(self, options):
-            super(DatasetTensorflow, self).__init__(options)
-
-        @staticmethod
-        def createTFDataset(tupFeat):
-            return tfd.Dataset.from_tensor_slices(tupFeat)
-except:
-    print("[WARNING] error while importing tensoprflow in %s ; please verify your install" % locals()['__name__'])
+# try:
+#     import tensorflow.contrib.data as tfd
+#
+#
+#     class DatasetTensorflow(Dataset, tfd.Dataset):
+#         """ Definition of a basic dataset
+#         Attributes:
+#             dataDirectory:
+#         """
+#
+#         def __init__(self, options):
+#             super(DatasetTensorflow, self).__init__(options)
+#
+#         @staticmethod
+#         def createTFDataset(tupFeat):
+#             return tfd.Dataset.from_tensor_slices(tupFeat)
+# except:
+#     print("[WARNING] error while importing tensoprflow in %s ; please verify your install" % locals()['__name__'])
