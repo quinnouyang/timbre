@@ -280,6 +280,7 @@ if __name__ == "__main__":
     print("harm_bins: ", harm_bins)
     harm_amps = get_log_amplitudes_from_bin(harm_bins, spec[0])
     print("harm amps: ", harm_amps)
+    print("number of timestamps: ", len(random.choice(list(harm_amps.values()))))
     print("fundamental_freq: ", fund_freq)
 
     # fig, axs = plt.subplots(3, 1)
