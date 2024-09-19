@@ -1,0 +1,197 @@
+\documentclass{article}
+\usepackage[
+backend=biber,
+style=alphabetic
+% sorting=ynt
+]{biblatex}
+
+\usepackage{geometry}
+ \geometry{letterpaper}
+ 
+ \usepackage[acronym]{glossaries}
+
+\usepackage{optidef}
+\addbibresource{mybibliography.bib}
+
+
+\makeglossaries
+
+
+\title{Text-to-Timbre Literature Review + Research Outline }
+\author{}
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+We intend to create an artificial intelligence (\gls{AI}) technology which takes semantic descriptions of timbre as input and outputs a short two second monophonic sample of the desired timbre. An example application of this technology is a compositional workflow where a sample is generated then transposed and triggered using a MIDI keyboard. Two preliminary questions have motivated our early literature search on this topic: (1) What words can we use to describe the timbre of a sound? (2) What kind of algorithm will produce the most convincing results? In the following two sections, we introduce background literature on the topic of timbre perception and semantic descriptions of music, then we provide a few examples of existing AI technologies used to generate audio focusing primarily on autoencoders and methods of feature extraction. We then outline a research plan.
+
+\newglossaryentry{AI}
+{
+    name=AI,
+    description={AI is shorthand for Artificial Intelligence. In this document, we are generally referring to models developed using neural networks, also known as deep learning models.}
+}
+
+\section{Timbre and Semantics}
+
+Timbre is the feature(s) of a sound which allow us to distinguish two instruments playing the same pitch at the same intensity. Critical to our perception of timbre is the amplitudes of harmonics in a sound. The harmonic amplitudes of any repeating waveform can be described physically and mathematically by an infinite series of sinusoidal waves called a Fourier series. The non-periodic parts of a sound envelope are possibly more important to our human timbre perception; in fact the sustain part of the attack-sustain-decay-release (\gls{ADSR}) envelope may be the least important in timbre perception because of its periodicity.  \cite{Kai2019} This may be a clue about how we should train our AI: If our goal is to create an AI which produces humanly distinguishable timbres, then perhaps our focus should be on extracting features of the non-periodic aspects of sound.
+
+\newglossaryentry{ADSR}
+{
+    name=ADSR,
+    description={ADSR is shorthand for Attack-Sustain-Decay-Release. This is a common way to describe sonic envelopes.}
+}
+
+Ideally, we would like to create a system where the user can use natural language to prompt the AI to generate a timbre sample, much like how Google's MusicLM functions. \cite{Agostinelli2023} For now, we will to restrict the words users can prompt the AI with to our own curated list of words.
+
+Researchers have been working to understand our human metaphorical semantic associations with timbre qualities since at least the time of Helmholtz. \cite{Saitis2019} There have been many attempts to understand timbre as a multi-dimensional parameter space. \cite{Wessel1979} A 2020 study involving over 400 musicians resulted in a 20-dimensional timbre \textit{qualia} model, each dimension corresponding to a category of semantic timbre descriptors. \cite{Reymore2020} Other studies have been conducted using a curated subset of these twenty semantic descriptors, for example a study examining semantic associations paying particular attention to register and pitch height. \cite{Lindsey2023}.
+
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{c|c|c|c}
+        Rumbling/low    & Soft/singing     & Watery/fluid       & Direct/loud         \\
+        Nasal/reedy     & Shrill/noisy     & Percussive         & Pure/clear          \\
+        Brassy/metallic & Raspy/grainy     & Ringing/long decay & Sparkling/brilliant \\
+        Airy/breathy    & Resonant/vibrant & Hollow             & Woody               \\
+
+        Muted/veiled    & Sustained/even   & Open               & Focused/compact
+    \end{tabular}
+    \caption{Short-hand list of 20 semantic categories from \cite{Reymore2020}.}
+    \label{tab:my_label}
+\end{table}
+
+\section{AI and Sound}
+
+In essence, we want to design a latent space which is humanly comprehensible in the sense that it is regularized primarily by semantic timbre descriptors. A type of neural network commonly used when working with generative audio is a variational autoencoder (\gls{VAE}), the most prominent audio application of which is likely the RAVE model developed at IRCAM. \cite{Caillon2021} A VAE was also used in a recent paper where non-semantic descriptors of audio such as spectral centroid and attack time were used to classify and generate sounds. \cite{Natsiou2023} There are two primary technical challenges to explore: (1) What audio features should be fed to our algorithm for training? (2) How can we optimize our neural network for the most convincing output?
+
+\newglossaryentry{VAE}
+{
+    name=VAE,
+    description={VAE is shorthand for Variational AutoEncoder. This is a symmetric neural network useful for exposing latent space.}
+}
+
+\subsection{Feature Extraction}
+
+While large companies like OpenAI have been able to train neural networks using entire waveforms, training with such large amounts of data take an immense amount of processing time. \cite{Dhariwal2020} Instead, to efficiently and effectively process audio, pertinent audio features can be extracted from samples and used to significantly more quickly train an AI.
+
+If we perceptually interpret timbre as a multi-dimensional phenomenon, different dimensions correspond to ``spectral, temporal, and spectrotemporal" aspects of a sound. \cite{McAdams2019} In order to most effectively represent distinct timbres in a digital space, we must first consider what abstract representations of audio most effectively capture the characteristics of timbre we are interested in manipulating.
+For example, there is some evidence that the concepts of consonance and dissonance are universally and directly correlated with the \textit{roughness} of a sound. \cite{Milne2023} If we could design a term which encapsulates the roughness of a sound in a single variable, this would be an excellent data-point to feed our neural network. Other terms may be more straightforward to calculate. For example, it has been found that attack duration is particularly important identifying timbre, as well as other aperiodic aspects of the sound onset. \cite{Kai2019}
+
+Once we decide which audio features to extract, there are a number of tools we could use to extract relevant information. Some of the more relevant Python packages available to us are Librosa and Torchaudio. Torchaudio streamlines audio feature extraction for neural networking applications within they PyTorch framework. \cite{Yang2021} Librosa is a more general python package for audio feature extraction. \cite{McFee2015} In principle, Matlab and other scientific tools could work just as well and give us more control over how audio features are extracted, but I tend to believe that Librosa or Torchaudio will be sufficient.
+
+
+\subsection{Neural Networking Techniques}
+
+Seemingly, the most common form of neural network used for generating audio is a variational autoencoder. VAEs are symmetric neural networks; the structured network of nodes on the left side of the VAE is the same as the right side, but in reverse. The intent of a VAE is to take high dimensional input data (such as audio waveforms), reduce it to a smaller dimensional latent space, then reverse the process and get the original input at the output end. The smaller dimensional latent space will likely be more humanly interpretable than the input or output data, especially in cases where the latent space is only two or three dimensions. After the neural network is trained, new materials can be generate by removing the encoding portion of the network and interacting directly with the latent space. For more details see the following 2019 publication: \cite{Kingma2019}
+
+
+\section{Research Outline}
+
+Our proposed research is strongly informed by the procedures in \cite{Roche2020} and the code provided in \cite{Esling2018}. Our work is distinct from that of Roche in four significant ways: (1) We use a best-worst scaling method to generate our annotations. (2) We use a higher dimensional latent space corresponding to our higher number of semantic descriptors. (3) We create both a VAE and a convolutional VAE (CVAE) for the sake of comparison. (4) We conduct our work in English.
+
+The basic procedure is: (1) Choose/collect a data-set. (2) Annotate a subset of the data-set. (3) Determine how to extract relevant features from a given sample. (4) Design a neural network. (5) Train and test the network. In the following we outline this procedure in more detail, focusing particularly on how our research is distinct from that of Roche.
+
+
+\subsection{Data-set}
+There are very few data-sets containing monophonic one-shot samples. The collection most appropriate to our research that I am aware of is the NSynth data-set, which focuses on acoustic instruments. \cite{Engel2017}\footnote{https://magenta.tensorflow.org/datasets/nsynth} There is also the Arturia dataset which was developed for a single paper \cite{Roche2021}\footnote{https://zenodo.org/records/4680486}. In any case, there is no large data-set of monophonic one-shot samples that is annotated with semantic descriptors.
+
+If desired, we could possibly supplement these data-sets with each other, or perhaps contribute our own sounds to the data-set. In the University of Illinois Experimental Music Studios we have a number of synthesizers with a variety of presets we could easily record, for example.
+
+\subsection{Annotations}
+
+Once we determine our collection of semantic descriptors, we can begin the process of annotating our samples. If we rely on a \textit{weakly supervised} training methodology, we only need to annotate a subset of the training data. \cite{Zhou2017} At the end of our annotating process, we would like the entire subset of samples to be annotated with a number of data points equal to the number of semantic descriptors between 0.0 and 1.0. We are aware of two ways to effectively annotate the samples: (1) A direct survey. (2) A comparative best-worst survey.
+
+\subsubsection{Direct survey}
+
+The most intuitive way to annotate a sample would merely be to ask the survey participant to label a sample with weighted semantic descriptors. For example, a participant may be made to hear the sound of a trombone and their annotation could be that the sound is 0.9 brassy, 0.6 rumbling, 0.65 resonant, etc. This is seemingly the approach used by Roche. \cite{Roche2020, Roche2021}
+
+The disadvantage to this approach is the lack of a reference frame for a given sample. We are unable to provide a survey participant with the \textit{most} or \textit{least} brassy sound, so the resulting annotation set is skewed. In Roche's study, 14 out of 71 participants used less than 90\% of the scales, but all participants used at least 75\% of the scales. It is also worth noting that in Roche's study, they used a total sample set consisting of 1,233 unlabeled samples and only 80 labeled samples selected to represent the most contrasting sounds in the data-set. \cite{Roche2020}
+
+\subsubsection{Best-worst survey}
+
+The Best-Worst Survey method is outline and applied to semantic timbre ranking in \cite{Victor2022}. In this survey, a participant is presented with a number of samples and is asked to identify which is the most and least representative of the target semantic timbre descriptor. For example, a survey participant is made to hear four samples, then they identify which sample is the most raspy and which is the least raspy.
+
+It was found in \cite{Victor2022} that this method is both slightly faster and more pleasant than a direct survey experience. The results from the best-worst survey are comparable or slightly better than the direct survey results.
+
+In the experiment in \cite{Victor2022}, participants were provided with four sounds and asked to select the most and least ``bright" sounds. Each participant was presented with 25 sets of four sounds, and no sounds were duplicated. At the end of a single trial, 25 samples are ranked as most bright, 25 samples are ranked as least bright, and 50 samples are in the middle. The next survey participant is the presented with the same 100 samples, but grouped differently into 25 sets. After several trials, the rankings can be combined using one of the scoring methods described in \cite{Hollis2018}. The simplest scoring method would be an Elo rating system like is used in chess tournaments.
+
+In our case, a trial could consist of 100 samples arranged into 25 sets. For each set of 4 samples presented, participants will need to rank them once for each semantic timbre descriptor before moving onto the next set.
+
+The disadvantage to this approach is that multiple trials need to be run to generate accurate results. The low cognitive load of this approach compared to a direct survey means that trials are very fast, but many trials must be run in the best-worst approach.
+
+
+\subsection{Feature extraction / Preprocessing}
+
+In the simplest case, short sound samples can be represented in an efficient way using short term Fourier transformations (SFTP). This combined with phase information is a lossless representation of a waveform that makes no assumptions about the human timbre perception - this is the approach used in \cite{Roche2020}. In Roche's NSynth 10,000 sample data-set is represented by 1,157,310 vectors.
+
+In order to speed up the training process and make a latent space which is more easily interpretable, features from audio samples can be extracted and used for training instead of the entire SFTP. \cite{Natsiou2023} The difficulty in extracting features from audio samples comes in deciding which features are most pertinent to the desired output. In the case of \cite{Natsiou2023}, they extract pitch, the amplitude of the first 7 harmonics above that pitch, the spectral centroid, and the attack time. These data are used for training instead of the waveform, and as a result the quality of the output waveform is diminished. It may be possible to enhance the quality of a sample using an adversarial network as was done in the RAVE model, but that is beyond the immediate scope of our project. \cite{Caillon2021}
+
+\subsection{Designing a neural network}
+
+While both Generative Adversarial Networks (GANs) and Autoencoders (AE) have been successfully used to generate audio, AEs give us access to latent space within the network which we can regularlize to be humanly interpretable. One of the more common variations of an autoencoder is a variational autoencoder (VAE), which is distinct from an AE in that data is represented as probability distributions in the latent space rather than as distinct points. Creating VAEs for audio applications are well documented, and we can rely on the code produced at IRCAM as a starting point. \cite{Esling2018}\footnote{https://github.com/acids-ircam/variational-timbre}
+
+In addition to the well tested VAE, we would like to compare against a convolutional VAE (CVAE). The CVAE is distinct from the VAE in that fully connected layers are replaced with convolutional layers. The CVAE was used in \cite{Natsiou2023} when dealing with feature extracted data. CVAEs have also proven particularly useful for speech recognition. \cite{Iakovenko2020}
+
+It is our hypothesis that because nodes in CVAEs interact via convolution, we can submit data to the CVAE in such a way that aperiod aspects of the temporomorphology of the sound are highlighted more readily than in a VAE. In simpler terms, we hypothesize that a CVAE will more readily capture subtleties in the aperiod parts of a sound that are critical to timbre perception than a VAE.
+
+\subsection{Training and testing}
+
+We anticipate based on times provided by Roche that training times will be sufficiently small such that our AI can be trained on personal hardware. \cite{Roche2020} The main difficulty in training our model, a difficulty we share with Roche, comes from the fact that only a small subset of our data is annotated. We must rely on an intermediate style learning between supervised and unsupervised called \textit{weakly} supervised learning. \cite{Zhou2017}
+
+There are many varieties of weakly supervised learning methodologies. The one used by Roche consists of 2-parts: (1) The model is trained without supervision on all available data. (2) The model is fine-tuned in a supervised way using the annotated data. \cite{Roche2020} High level features are extracted in the first part, and the dimensions become more aligned with perceptual semantic dimensions in the second part. \cite{Esling2018}
+
+Once the AI is trained, we will develop a simple prompting interface where the user indicates on a scale of 1-10 how much of each semantic descriptor they want present in the generated sample. For example, the user could say they want a sound that is 8 woody, 4 open, 2 brassy, and 5 clear. Even if we don't have a training sample which closely matches this input, we will be able to interpolate through our latent space to generate a sample. \cite{Tatar2021}
+
+\subsection{Timeline}
+
+The following is a list of anticipated milestones and deadlines for submitting to various opportunities.
+
+\begin{itemize}
+    \item (02/01/24) Complete data-set collection.
+    \item (02/15/24) Complete survey software.
+    \item (03/01/24) Complete surveys.
+    \item (03/08/24) Submit to UIUC undergraduate research symposium.
+    \item (03/11/24) Submit to UIUC undergraduate research grant (\$2,000).
+    \item (04/01/24) Complete simple VAE regularized on survey results with simple STFT input (minimal pre-processing).
+    \item (04/25/24) UIUC undergraduate research symposium.
+    \item (09/01/24) Complete simple VAE regularized on survey results with significant pre-processing.
+    \item (10/01/24) Submit to CSSN Community Engagement Project (CCEP) through the National Center for Supercomputing Applications (NCSA) for domestic travel funding.
+    \item (early 10/24) Submit to the 29th conference on Technologies and Applications of Artificial Intelligence (TAAI).
+    \item (early 12/24) TAAI in early December, 2024, generally beginning December 1st.
+\end{itemize}
+
+
+\section{Future Work}
+Beyond our short-term goal of designing a VAE with a semantically interpretable latent space, there are a few directions we could take our research. Below we list four ways in which we could improve or extend our research.
+
+\subsection{Improving Output Quality}
+
+Like the RAVE model, we can take our VAE results and send them through a GAN for cleanup via ``Adversarial Fine Tuning" \cite{Caillon2021} We could also investigate parametric modelling, where different waveforms are extracted from the sample and used in parallel to train a neural network. \cite{Subramani2020} Our technology could likely also be extended by applying a WaveNet post-processing layer. \cite{Kim2019}
+
+\subsection{Quantum Assisted Neural Networking}
+
+Due to the wave-nature of sound, there exist many possible information-dense representations of audio in quantum states. \cite{Itaborai2022} With a carefully selected quantum representation of audio, we may be able to reveal audio features that otherwise a classical VAE will not be able to learn. \cite{Rocchetto2018}
+
+There are also new theorized hybrid models of machine learning involving both quantum and classical computers, for example SEQUENT. \cite{Altmann2023} Even current small-scale quantum VAEs are comparable in speed to their classical counterparts. \cite{Khoshaman2019}
+
+The wave-nature of sound makes it an obvious candidate for exploring applications of quantum machine learning techniques. Current-era quantum hardware is for most problems not more efficient than classical hardware, but this will likely not be true in the near future. Creating a quantum enhanced variation of our technology now allows for future scaling as quantum hardware improves.
+
+\subsection{Natural Language Input}
+
+It would be wonderful if an end-user was able to freely verbalize using natural language a prompt for our AI. The feasibility of this is hindered greatly by the fact that there are few, if any, data-sets consisting of appropriately annotated audio. To enable natural language input, we would first need to create an AI which can annotate audio in a useful way.
+
+\subsection{Larger Sample Set}
+
+It is impossible to tell without first training our AI, but it is very likely that our AI will have a difficult time generating sounds very distinct from all the sounds in our data-set. The easiest solution to this issue is merely to add more samples.
+
+
+\medskip
+
+% \printglossary
+
+
+\printbibliography
+\end{document}
