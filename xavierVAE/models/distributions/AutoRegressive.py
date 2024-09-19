@@ -12,7 +12,7 @@ class AutoRegressiveBernoulli(dist.Bernoulli):
     pass
 
 
-def AutoRegressive(distribution = dist.normal):
+def AutoRegressive(distribution=dist.normal):
     if distribution == dist.Normal or distribution == Spectral:
         return AutoRegressiveNormal
     elif distribution == dist.Bernoulli:

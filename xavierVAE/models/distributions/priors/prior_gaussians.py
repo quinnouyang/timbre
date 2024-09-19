@@ -9,8 +9,7 @@ from torch import zeros, ones
 class IsotropicGaussian(Prior):
     def __init__(self, dim, *args, **kwargs):
         super(IsotropicGaussian, self).__init__()
-        self.params = (zeros((1, dim)),
-                       ones((1, dim)))
+        self.params = (zeros((1, dim)), ones((1, dim)))
         self.params[0].requires_grad_(False)
         self.params[1].requires_grad_(False)
         self.dist = dist.Normal

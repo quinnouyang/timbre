@@ -8,7 +8,7 @@ import matplotlib.patches as mpatches
 # UTILS
 
 
-def get_cmap(n, color_map='plasma'):
+def get_cmap(n, color_map="plasma"):
     return plt.cm.get_cmap(color_map, n)
 
 
@@ -17,7 +17,7 @@ def get_class_ids(dataset, task, ids=None):
         ids = np.arange(dataset.data.shape[0])
     metadata = np.array(dataset.metadata.get(task)[ids])
     if metadata is None:
-        raise Exception('please give a valid metadata task')
+        raise Exception("please give a valid metadata task")
     n_classes = list(set(metadata))
     ids = []
     for i in n_classes:
@@ -42,7 +42,11 @@ def get_divs(n):
 def get_balanced_ids(metadata, n_points=None):
     items = list(set(metadata))
     class_ids = []
-    n_ids = metadata.shape[0] // len(items) if n_points is None else int(n_points) // len(items)
+    n_ids = (
+        metadata.shape[0] // len(items)
+        if n_points is None
+        else int(n_points) // len(items)
+    )
     for i, item in enumerate(items):
         class_ids.append(np.where(metadata == item)[0])
         if len(class_ids[-1]) < (n_ids // len(items)):
@@ -56,9 +60,26 @@ def get_balanced_ids(metadata, n_points=None):
 ########        LATENT PLOTS
 ####
 
-def plot_latent2(dataset, model, transformation, n_points=None, tasks=None, classes=None, label=None, balanced=False,
-                 legend=True,
-                 sample=False, layers=0, color_map="plasma", zoom=10, out=None, verbose=False, *args, **kwargs):
+
+def plot_latent2(
+    dataset,
+    model,
+    transformation,
+    n_points=None,
+    tasks=None,
+    classes=None,
+    label=None,
+    balanced=False,
+    legend=True,
+    sample=False,
+    layers=0,
+    color_map="plasma",
+    zoom=10,
+    out=None,
+    verbose=False,
+    *args,
+    **kwargs
+):
     # select points
     if balanced and tasks != None:
         ids = set()
@@ -70,13 +91,21 @@ def plot_latent2(dataset, model, transformation, n_points=None, tasks=None, clas
         ids = list(ids)
         task_ids = [np.array([ids.index(x) for x in task_id]) for task_id in task_ids]
     else:
-        ids = dataset.data.shape[0] if n_points is None else np.random.permutation(dataset.data.shape[0])[:n_points]
+        ids = (
+            dataset.data.shape[0]
+            if n_points is None
+            else np.random.permutation(dataset.data.shape[0])[:n_points]
+        )
         task_ids = [] if tasks is None else [range(len(ids))] * len(tasks)
 
     ids = np.array(ids)
 
     data = model.format_input_data(dataset.data[ids])
-    metadata = model.format_label_data(dataset.metadata[label][ids]) if not label is None else None
+    metadata = (
+        model.format_label_data(dataset.metadata[label][ids])
+        if not label is None
+        else None
+    )
     output = model.forward(data, y=metadata, *args, **kwargs)
     figs = []
 
@@ -84,26 +113,36 @@ def plot_latent2(dataset, model, transformation, n_points=None, tasks=None, clas
         # make manifold
 
         if tasks is None:
-            fig = plt.figure('latent plot of layer %d' % layer)
+            fig = plt.figure("latent plot of layer %d" % layer)
 
-            current_z = model.platent[layer]['dist'](*output['z_params_enc'][layer]).mean.detach().numpy()
+            current_z = (
+                model.platent[layer]["dist"](*output["z_params_enc"][layer])
+                .mean.detach()
+                .numpy()
+            )
             if current_z.shape(1) > 2:
                 current_z = transformation.fit_transform(current_z)
 
-            plt.scatter(output['z_params_enc'][layer][:, 0], output['z_params_enc'][layer][:, 1])
-            plt.title('latent plot of layer %d' % layer)
+            plt.scatter(
+                output["z_params_enc"][layer][:, 0], output["z_params_enc"][layer][:, 1]
+            )
+            plt.title("latent plot of layer %d" % layer)
             if not out is None:
-                fig.savefig(out + '_layer%d.svg' % layer, format="svg")
+                fig.savefig(out + "_layer%d.svg" % layer, format="svg")
             figs.append(fig)
         else:
             if not issubclass(type(tasks), list):
                 tasks = [tasks]
-            current_z = model.platent[layer]['dist'](*output['z_params_enc'][layer]).mean.detach().numpy()
+            current_z = (
+                model.platent[layer]["dist"](*output["z_params_enc"][layer])
+                .mean.detach()
+                .numpy()
+            )
             if current_z.shape[1] > 2:
                 current_z = transformation.fit_transform(current_z)
             for id_task, task in enumerate(tasks):
-                print('-- plotting task %s' % task)
-                fig = plt.figure('latent plot of layer %d, task %s' % (layer, task))
+                print("-- plotting task %s" % task)
+                fig = plt.figure("latent plot of layer %d, task %s" % (layer, task))
                 #            pdb.set_trace()
                 meta = np.array(dataset.metadata[task])[ids[task_ids[id_task]]]
                 _, classes = get_class_ids(dataset, task, ids=ids[task_ids[id_task]])
@@ -117,20 +156,38 @@ def plot_latent2(dataset, model, transformation, n_points=None, tasks=None, clas
                     if dataset.classes.get(task) != None:
                         class_names = {v: k for k, v in dataset.classes[task].items()}
                         for cl in classes:
-                            patch = mpatches.Patch(color=cmap(cl), label=class_names[cl])
+                            patch = mpatches.Patch(
+                                color=cmap(cl), label=class_names[cl]
+                            )
                             handles.append(patch)
                         fig.legend(handles=handles)
 
                 figs.append(fig)
                 if not out is None:
-                    title = out + '_layer%d_%s.svg' % (layer, task)
+                    title = out + "_layer%d_%s.svg" % (layer, task)
                     fig.savefig(title, format="svg")
     return figs
 
 
-def plot_latent3(dataset, model, transformation, n_points=None, label=None, tasks=None, classes=None, balanced=False,
-                 sample=False, layers=[0], color_map="plasma", zoom=10, out=None, legend=True, centroids=False, *args,
-                 **kwargs):
+def plot_latent3(
+    dataset,
+    model,
+    transformation,
+    n_points=None,
+    label=None,
+    tasks=None,
+    classes=None,
+    balanced=False,
+    sample=False,
+    layers=[0],
+    color_map="plasma",
+    zoom=10,
+    out=None,
+    legend=True,
+    centroids=False,
+    *args,
+    **kwargs
+):
     # select points
     # make manifold
     if balanced and tasks != None:
@@ -143,13 +200,21 @@ def plot_latent3(dataset, model, transformation, n_points=None, label=None, task
         ids = list(ids)
         task_ids = [np.array([ids.index(x) for x in task_id]) for task_id in task_ids]
     else:
-        ids = dataset.data.shape[0] if n_points is None else np.random.permutation(dataset.data.shape[0])[:n_points]
+        ids = (
+            dataset.data.shape[0]
+            if n_points is None
+            else np.random.permutation(dataset.data.shape[0])[:n_points]
+        )
         task_ids = [] if tasks is None else [range(len(ids))] * len(tasks)
 
     ids = np.array(ids)
 
     data = model.format_input_data(dataset.data[ids])
-    metadata = model.format_label_data(dataset.metadata[label][ids]) if not label is None else None
+    metadata = (
+        model.format_label_data(dataset.metadata[label][ids])
+        if not label is None
+        else None
+    )
     output = model.forward(data, y=metadata, *args, **kwargs)
     figs = []
 
@@ -157,31 +222,46 @@ def plot_latent3(dataset, model, transformation, n_points=None, label=None, task
         # make manifold
 
         if tasks is None:
-            fig = plt.figure('latent plot of layer %d' % layer)
-            ax = fig.gca(projection='3d')
+            fig = plt.figure("latent plot of layer %d" % layer)
+            ax = fig.gca(projection="3d")
 
-            current_z = model.platent[layer]['dist'](*output['z_params_enc'][layer]).mean.detach().cpu().numpy()
+            current_z = (
+                model.platent[layer]["dist"](*output["z_params_enc"][layer])
+                .mean.detach()
+                .cpu()
+                .numpy()
+            )
             if current_z.shape(1) > 3:
                 current_z = transformation.fit_transform(current_z)
 
-            ax.scatter(output['z_params_enc'][layer][:, 0], output['z_params_enc'][layer][:, 1],
-                       output['z_params_enc'][layer][:, 2])
-            plt.title('latent plot of layer %d' % layer)
+            ax.scatter(
+                output["z_params_enc"][layer][:, 0],
+                output["z_params_enc"][layer][:, 1],
+                output["z_params_enc"][layer][:, 2],
+            )
+            plt.title("latent plot of layer %d" % layer)
             if not out is None:
-                fig.savefig(out + '_layer%d.svg' % layer, format="svg")
+                fig.savefig(out + "_layer%d.svg" % layer, format="svg")
             figs.append(fig)
         else:
             if not issubclass(type(tasks), list):
                 tasks = [tasks]
-            current_z = model.platent[layer]['dist'](*output['z_params_enc'][layer]).mean.cpu().detach().numpy()
+            current_z = (
+                model.platent[layer]["dist"](*output["z_params_enc"][layer])
+                .mean.cpu()
+                .detach()
+                .numpy()
+            )
             if current_z.shape[1] > 3:
                 current_z = transformation.fit_transform(current_z)
             for id_task, task in enumerate(tasks):
-                print('-- plotting task %s' % task)
-                fig = plt.figure('latent plot of layer %d, task %s' % (layer, task))
-                ax = fig.gca(projection='3d')
+                print("-- plotting task %s" % task)
+                fig = plt.figure("latent plot of layer %d, task %s" % (layer, task))
+                ax = fig.gca(projection="3d")
                 meta = np.array(dataset.metadata[task])[ids[task_ids[id_task]]]
-                class_ids, classes = get_class_ids(dataset, task, ids=ids[task_ids[id_task]])
+                class_ids, classes = get_class_ids(
+                    dataset, task, ids=ids[task_ids[id_task]]
+                )
 
                 cmap = get_cmap(len(classes))
                 current_z = current_z[task_ids[id_task], :] if balanced else current_z
@@ -192,35 +272,70 @@ def plot_latent3(dataset, model, transformation, n_points=None, label=None, task
                     current_alpha = 0.7
 
                 if current_z.shape[1] == 2:
-                    ax.scatter(current_z[:, 0], current_z[:, 1], 0, c=cmap(meta), alpha=current_alpha)
+                    ax.scatter(
+                        current_z[:, 0],
+                        current_z[:, 1],
+                        0,
+                        c=cmap(meta),
+                        alpha=current_alpha,
+                    )
                 else:
-                    ax.scatter(current_z[:, 0], current_z[:, 1], current_z[:, 2], c=cmap(meta), alpha=current_alpha)
+                    ax.scatter(
+                        current_z[:, 0],
+                        current_z[:, 1],
+                        current_z[:, 2],
+                        c=cmap(meta),
+                        alpha=current_alpha,
+                    )
 
                 class_names = {v: k for k, v in dataset.classes[task].items()}
                 if centroids:
                     for i, cid in enumerate(class_ids):
                         centroid = np.mean(current_z[cid], axis=0)
-                        ax.scatter(centroid[0], centroid[1], centroid[2], s=30, c=cmap(classes[i]))
-                        ax.text(centroid[0], centroid[1], centroid[2], class_names[i], color=cmap(classes[i]),
-                                fontsize=10)
+                        ax.scatter(
+                            centroid[0],
+                            centroid[1],
+                            centroid[2],
+                            s=30,
+                            c=cmap(classes[i]),
+                        )
+                        ax.text(
+                            centroid[0],
+                            centroid[1],
+                            centroid[2],
+                            class_names[i],
+                            color=cmap(classes[i]),
+                            fontsize=10,
+                        )
 
                 if legend:
                     handles = []
                     if dataset.classes.get(task) != None:
                         for cl in classes:
-                            patch = mpatches.Patch(color=cmap(cl), label=class_names[cl])
+                            patch = mpatches.Patch(
+                                color=cmap(cl), label=class_names[cl]
+                            )
                             handles.append(patch)
                         fig.legend(handles=handles)
 
                 figs.append(fig)
                 if not out is None:
-                    title = out + '_layer%d_%s.svg' % (layer, task)
+                    title = out + "_layer%d_%s.svg" % (layer, task)
                     fig.savefig(title, format="svg")
     return figs
 
 
-def plot_latent_stats(dataset, model, label=None, tasks=None, n_points=None, layers=[0], legend=True, out=None,
-                      balanced=False):
+def plot_latent_stats(
+    dataset,
+    model,
+    label=None,
+    tasks=None,
+    n_points=None,
+    layers=[0],
+    legend=True,
+    out=None,
+    balanced=False,
+):
     if balanced and tasks != None:
         ids = set()
         task_ids = []
@@ -231,7 +346,11 @@ def plot_latent_stats(dataset, model, label=None, tasks=None, n_points=None, lay
         ids = list(ids)
         task_ids = [np.array([ids.index(x) for x in task_id]) for task_id in task_ids]
     else:
-        ids = dataset.data.shape[0] if n_points is None else np.random.permutation(dataset.data.shape[0])[:n_points]
+        ids = (
+            dataset.data.shape[0]
+            if n_points is None
+            else np.random.permutation(dataset.data.shape[0])[:n_points]
+        )
         task_ids = [] if tasks is None else [range(len(ids))] * len(tasks)
 
     ids = np.array(ids)
@@ -249,11 +368,11 @@ def plot_latent_stats(dataset, model, label=None, tasks=None, n_points=None, lay
         latent_dim = zs[0].shape[1]
         id_range = np.array(list(range(latent_dim)))
         if tasks is None:
-            fig = plt.figure('latent statistics for layer %d' % layer)
-            ax1 = fig.add_subplot(211);
-            ax1.set_title('variance of latent positions')
-            ax2 = fig.add_subplot(212);
-            ax2.set_title('mean of variances per axis')
+            fig = plt.figure("latent statistics for layer %d" % layer)
+            ax1 = fig.add_subplot(211)
+            ax1.set_title("variance of latent positions")
+            ax2 = fig.add_subplot(212)
+            ax2.set_title("mean of variances per axis")
             pos_var = [np.std(zs[0], 0)]
             var_mean = [np.mean(zs[1], 0)]
             width = 1 / len(pos_var)
@@ -264,23 +383,25 @@ def plot_latent_stats(dataset, model, label=None, tasks=None, n_points=None, lay
             #        ax1.set_xticklabels(np.arange(latent_dim), np.arange(latent_dim))
             #        ax2.set_xticklabels(np.arange(latent_dim), np.arange(latent_dim))
             if not out is None:
-                fig.savefig(out + '_layer%d.svg' % layer, format="svg")
+                fig.savefig(out + "_layer%d.svg" % layer, format="svg")
             figs.append(fig)
         else:
             if not issubclass(type(tasks), list):
                 tasks = [tasks]
             for t, task in enumerate(tasks):
-                print('-- plotting task %s' % task)
-                fig = plt.figure('latent statistics for layer %d, task %s' % (layer, task))
-                ax1 = fig.add_subplot(211);
-                ax1.set_title('variance of latent positions')
-                ax2 = fig.add_subplot(212);
-                ax2.set_title('mean of variances per axis')
+                print("-- plotting task %s" % task)
+                fig = plt.figure(
+                    "latent statistics for layer %d, task %s" % (layer, task)
+                )
+                ax1 = fig.add_subplot(211)
+                ax1.set_title("variance of latent positions")
+                ax2 = fig.add_subplot(212)
+                ax2.set_title("mean of variances per axis")
                 # get classes
                 class_ids, classes = get_class_ids(dataset, task, ids=ids[task_ids[t]])
                 # get data
-                pos_var = [];
-                var_mean = [];
+                pos_var = []
+                var_mean = []
                 width = 1 / len(class_ids)
                 cmap = get_cmap(len(class_ids))
                 handles = []
@@ -297,7 +418,7 @@ def plot_latent_stats(dataset, model, label=None, tasks=None, n_points=None, lay
                         handles.append(patch)
                     fig.legend(handles=handles)
                 if not out is None:
-                    title = out + '_layer%d_%s.svg' % (layer, task)
+                    title = out + "_layer%d_%s.svg" % (layer, task)
                     fig.savefig(title, format="svg")
                 figs.append(fig)
 
@@ -305,24 +426,42 @@ def plot_latent_stats(dataset, model, label=None, tasks=None, n_points=None, lay
     return figs
 
 
-def plot_latent_dists(dataset, model, label=None, tasks=None, bins=20, layers=[0], n_points=None, dims=None,
-                      legend=True, split=False, out=None, relief=True, ids=None, **kwargs):
+def plot_latent_dists(
+    dataset,
+    model,
+    label=None,
+    tasks=None,
+    bins=20,
+    layers=[0],
+    n_points=None,
+    dims=None,
+    legend=True,
+    split=False,
+    out=None,
+    relief=True,
+    ids=None,
+    **kwargs
+):
     # get data ids
     if n_points is None:
         ids = np.arange(dataset.data.shape[0]) if ids is None else ids
         data = dataset.data
         y = dataset.metadata.get(label)
     else:
-        ids = np.random.permutation(dataset.data.shape[0])[:n_points] if ids is None else ids
+        ids = (
+            np.random.permutation(dataset.data.shape[0])[:n_points]
+            if ids is None
+            else ids
+        )
         data = dataset.data[ids]
         y = dataset.metadata.get(label)
         if not y is None:
             y = y[ids]
     y = model.format_label_data(y)
-    data = model.format_input_data(data);
+    data = model.format_input_data(data)
 
     if dims is None:
-        dims = list(range(model.platent[layer]['dim']))
+        dims = list(range(model.platent[layer]["dim"]))
 
     # get latent space
     with torch.no_grad():
@@ -333,46 +472,73 @@ def plot_latent_dists(dataset, model, label=None, tasks=None, bins=20, layers=[0
     figs = []
 
     for layer in layers:
-        zs = model.platent[layer]['dist'](*vae_out[0][layer]).mean.cpu().detach().numpy()
+        zs = (
+            model.platent[layer]["dist"](*vae_out[0][layer]).mean.cpu().detach().numpy()
+        )
         if split:
             if tasks is None:
                 for dim in dims:
-                    fig = plt.figure('dim %d' % dim, figsize=(20, 10))
+                    fig = plt.figure("dim %d" % dim, figsize=(20, 10))
                     hist, edges = np.histogram(zs[:, dim], bins=bins)
-                    plt.bar(edges[:-1], hist, edges[1:] - edges[:-1], align='edge')
+                    plt.bar(edges[:-1], hist, edges[1:] - edges[:-1], align="edge")
                     if not out is None:
-                        prefix = out.split('/')[:-1]
-                        fig.savefig(prefix + '/dists/' + out.split('/')[-1] + '_%d_dim%d.svg' % (layer, dim))
+                        prefix = out.split("/")[:-1]
+                        fig.savefig(
+                            prefix
+                            + "/dists/"
+                            + out.split("/")[-1]
+                            + "_%d_dim%d.svg" % (layer, dim)
+                        )
                     figs.append(fig)
             else:
-                if not os.path.isdir(out + '/dists'):
-                    os.makedirs(out + '/dists')
+                if not os.path.isdir(out + "/dists"):
+                    os.makedirs(out + "/dists")
                 for t in range(len(tasks)):
                     class_ids, classes = get_class_ids(dataset, tasks[t], ids=ids)
                     cmap = get_cmap(len(class_ids))
                     for dim in dims:
-                        fig = plt.figure('dim %d' % dim, figsize=(20, 10))
-                        ax = fig.gca(projection='3d') if relief else fig.gca()
+                        fig = plt.figure("dim %d" % dim, figsize=(20, 10))
+                        ax = fig.gca(projection="3d") if relief else fig.gca()
                         for k, cl in enumerate(class_ids):
                             hist, edges = np.histogram(zs[cl, dim], bins=bins)
                             colors = cmap(k)
                             if relief:
-                                ax.bar3d(edges[:-1], k * np.ones_like(hist), np.zeros_like(hist),
-                                         edges[1:] - edges[:-1], np.ones_like(hist), hist, color=colors)
+                                ax.bar3d(
+                                    edges[:-1],
+                                    k * np.ones_like(hist),
+                                    np.zeros_like(hist),
+                                    edges[1:] - edges[:-1],
+                                    np.ones_like(hist),
+                                    hist,
+                                    color=colors,
+                                )
                                 ax.view_init(30, 30)
                             else:
-                                ax.bar(edges[:-1], hist, edges[1:] - edges[:-1], align='edge')
+                                ax.bar(
+                                    edges[:-1],
+                                    hist,
+                                    edges[1:] - edges[:-1],
+                                    align="edge",
+                                )
                         if legend and not dataset.classes.get(tasks[t]) is None:
                             handles = []
-                            class_names = {v: k for k, v in dataset.classes[tasks[t]].items()}
+                            class_names = {
+                                v: k for k, v in dataset.classes[tasks[t]].items()
+                            }
                             for i in classes:
-                                patch = mpatches.Patch(color=cmap(i), label=class_names[i])
+                                patch = mpatches.Patch(
+                                    color=cmap(i), label=class_names[i]
+                                )
                                 handles.append(patch)
                             fig.legend(handles=handles)
                         if not out is None:
-                            prefix = out.split('/')[:-1]
-                            fig.savefig('/'.join(prefix) + '/dists/' + out.split('/')[-1] + '_%d_%s_dim%d.svg' % (
-                            layer, tasks[t], dim))
+                            prefix = out.split("/")[:-1]
+                            fig.savefig(
+                                "/".join(prefix)
+                                + "/dists/"
+                                + out.split("/")[-1]
+                                + "_%d_%s_dim%d.svg" % (layer, tasks[t], dim)
+                            )
                         #                    plt.close('all')
                         figs.append(fig)
         else:
@@ -383,11 +549,13 @@ def plot_latent_dists(dataset, model, label=None, tasks=None, bins=20, layers=[0
                     for j in range(axes.shape[1]):
                         current_id = i * dim2 + j
                         hist, edges = np.histogram(zs[:, dims[current_id]], bins=bins)
-                        axes[i, j].bar(edges[:-1], hist, edges[1:] - edges[:-1], align='edge')
-                        axes[i, j].set_title('axis %d' % dims[current_id])
+                        axes[i, j].bar(
+                            edges[:-1], hist, edges[1:] - edges[:-1], align="edge"
+                        )
+                        axes[i, j].set_title("axis %d" % dims[current_id])
                 if not out is None:
-                    prefix = out.split('/')[:-1]
-                    fig.savefig(out + '_0.svg' % layer)
+                    prefix = out.split("/")[:-1]
+                    fig.savefig(out + "_0.svg" % layer)
                 figs.append(fig)
             else:
                 dim1, dim2 = get_divs(len(dims))
@@ -395,9 +563,14 @@ def plot_latent_dists(dataset, model, label=None, tasks=None, bins=20, layers=[0
                     class_ids, classes = get_class_ids(dataset, tasks[t], ids=ids)
                     cmap = get_cmap(len(class_ids))
                     if relief:
-                        fig, axes = plt.subplots(dim1, dim2, figsize=(20, 10), subplot_kw={'projection': '3d'})
+                        fig, axes = plt.subplots(
+                            dim1,
+                            dim2,
+                            figsize=(20, 10),
+                            subplot_kw={"projection": "3d"},
+                        )
                     else:
-                        print('hello')
+                        print("hello")
                         fig, axes = plt.subplots(dim1, dim2, figsize=(20, 10))
 
                     #                pdb.set_trace()
@@ -406,33 +579,51 @@ def plot_latent_dists(dataset, model, label=None, tasks=None, bins=20, layers=[0
                         for j in range(dim_y):
                             current_id = i * dim2 + j
                             for k, cl in enumerate(class_ids):
-                                hist, edges = np.histogram(zs[cl, dims[current_id]], bins=bins)
+                                hist, edges = np.histogram(
+                                    zs[cl, dims[current_id]], bins=bins
+                                )
                                 colors = cmap(k)
                                 if relief:
-                                    axes[i, j].bar3d(edges[:-1], k * np.ones_like(hist), np.zeros_like(hist),
-                                                     edges[1:] - edges[:-1], np.ones_like(hist), hist, color=colors,
-                                                     alpha=0.1)
+                                    axes[i, j].bar3d(
+                                        edges[:-1],
+                                        k * np.ones_like(hist),
+                                        np.zeros_like(hist),
+                                        edges[1:] - edges[:-1],
+                                        np.ones_like(hist),
+                                        hist,
+                                        color=colors,
+                                        alpha=0.1,
+                                    )
                                     axes[i, j].view_init(30, 30)
                                 else:
-                                    axes[i, j].bar(edges[:-1], hist, edges[1:] - edges[:-1], align='edge')
-                                axes[i, j].set_title('axis %d' % dims[current_id])
+                                    axes[i, j].bar(
+                                        edges[:-1],
+                                        hist,
+                                        edges[1:] - edges[:-1],
+                                        align="edge",
+                                    )
+                                axes[i, j].set_title("axis %d" % dims[current_id])
 
                     if legend and not dataset.classes.get(tasks[t]) is None:
                         handles = []
-                        class_names = {v: k for k, v in dataset.classes[tasks[t]].items()}
+                        class_names = {
+                            v: k for k, v in dataset.classes[tasks[t]].items()
+                        }
                         for i in classes:
                             patch = mpatches.Patch(color=cmap(i), label=class_names[i])
                             handles.append(patch)
                         fig.legend(handles=handles)
 
                     if not out is None:
-                        prefix = out.split('/')[:-1]
-                        fig.savefig(out + '_%d_%s.svg' % (layer, tasks[t]))
+                        prefix = out.split("/")[:-1]
+                        fig.savefig(out + "_%d_%s.svg" % (layer, tasks[t]))
                     figs.append(fig)
     return figs
 
 
-def plot_class_losses(dataset, model, loss, tasks, loss_task=None, label=None, out=None):
+def plot_class_losses(
+    dataset, model, loss, tasks, loss_task=None, label=None, out=None
+):
     loss_task = label if loss_task is None else loss_task
     if not issubclass(type(tasks), list):
         tasks = [tasks]
@@ -443,7 +634,7 @@ def plot_class_losses(dataset, model, loss, tasks, loss_task=None, label=None, o
             y = None
             if not label is None:
                 y = dataset.metadata.get(label)[ids[t]]
-            data = model.format_input_data(dataset.data[ids[t]]);
+            data = model.format_input_data(dataset.data[ids[t]])
             y = model.format_label_data(y)
             with torch.no_grad():
                 pdb.set_trace()
@@ -460,24 +651,28 @@ def plot_class_losses(dataset, model, loss, tasks, loss_task=None, label=None, o
                     losses_classwise[k].append(v)
 
         n_losses = len(losses_classwise.keys())
-        fig = plt.figure('class-wise losses for task %s' % task)
+        fig = plt.figure("class-wise losses for task %s" % task)
         axes = fig.subplots(n_losses, 1)
         for i, l in enumerate(losses_classwise.keys()):
             axes[i].bar(range(len(ids)), losses_classwise[l], 1)
             plt.xticks(range(len(ids)), classes)
     if not out is None:
-        fig.savefig(out + '.svg', format="svg")
+        fig.savefig(out + ".svg", format="svg")
     return fig
 
 
-def plot_reconstructions(dataset, model, label=None, n_points=10, out=None, preprocessing=None, ids=None):
+def plot_reconstructions(
+    dataset, model, label=None, n_points=10, out=None, preprocessing=None, ids=None
+):
     n_rows, n_columns = get_divs(n_points)
-    ids = np.random.permutation(dataset.data.shape[0])[:n_points] if ids is None else ids
+    ids = (
+        np.random.permutation(dataset.data.shape[0])[:n_points] if ids is None else ids
+    )
     data = dataset.data[ids]
     metadata = None
     if not label is None:
         metadata = dataset.metadata.get(label)[ids]
-    vae_out = model.forward(data, y=metadata)['x_params'][0]
+    vae_out = model.forward(data, y=metadata)["x_params"][0]
     fig = plt.figure()
     axes = fig.subplots(n_rows, n_columns)
     synth = vae_out[0].cpu().detach().numpy()
@@ -489,10 +684,14 @@ def plot_reconstructions(dataset, model, label=None, n_points=10, out=None, prep
             axes[i, j].plot(data[i * n_columns + j])
             axes[i, j].plot(synth[i * n_columns + j], linewidth=0.6)
             if len(vae_out) > 1:
-                axes[i, j].bar(range(vae_out[0].shape[1]), vae_out[1][i * n_columns + j].cpu().detach().numpy(),
-                               align='edge', alpha=0.4)
+                axes[i, j].bar(
+                    range(vae_out[0].shape[1]),
+                    vae_out[1][i * n_columns + j].cpu().detach().numpy(),
+                    align="edge",
+                    alpha=0.4,
+                )
     if not out is None:
-        fig.savefig(out + '.svg', format="svg")
+        fig.savefig(out + ".svg", format="svg")
     return fig
 
 

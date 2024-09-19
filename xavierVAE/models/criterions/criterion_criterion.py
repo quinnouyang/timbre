@@ -15,7 +15,7 @@ class Criterion(object):
         self.loss_history = {}
 
     def loss(self, *args, options={}, **kwargs):
-        return 0.
+        return 0.0
 
     def write(self, name, losses):
         losses = [l.detach().cpu().numpy() for l in losses]
@@ -83,7 +83,7 @@ class LossContainer(Criterion):
 
     def loss(self, *args, options={}, **kwargs):
         full_losses = [c(*args, options=options, **kwargs) for c in self.criterions_]
-        loss = 0.;
+        loss = 0.0
         losses = []
         for l, ls in full_losses:
             loss = loss + l
@@ -100,5 +100,3 @@ class LossContainer(Criterion):
     def write(self, name, losses):
         for i, criterion in enumerate(self.criterions_):
             criterion.write(name, losses[i])
-
-

@@ -21,7 +21,7 @@ class Prior(object):
             draw = draw.cuda()
         return draw
 
-    def get_params(self, device='cpu', *args, **kwargs):
+    def get_params(self, device="cpu", *args, **kwargs):
         params = [p.to(device) for p in self.params]
         return tuple(params)
 
@@ -29,8 +29,10 @@ class Prior(object):
 class IsotropicGaussian(Prior):
     def __init__(self, dim, *args, **kwargs):
         super(IsotropicGaussian, self).__init__()
-        self.params = (from_numpy(zeros((1, dim), 'float32')),
-                       from_numpy(ones((1, dim), 'float32')))
+        self.params = (
+            from_numpy(zeros((1, dim), "float32")),
+            from_numpy(ones((1, dim), "float32")),
+        )
         self.params[0].requires_grad_(False)
         self.params[1].requires_grad_(False)
         self.dist = dist.Normal
@@ -46,7 +48,7 @@ class DiagonalGaussian(Prior):
 
 class MultiGaussian(Prior):
     def __init__(self, params, dist=dist.Normal):
-        self.dim = params[0].size(1);
+        self.dim = params[0].size(1)
         self.dist = dist
         self.params = []
         for i in range(len(params)):
@@ -56,7 +58,9 @@ class MultiGaussian(Prior):
             if issubclass(type(p), Tensor):
                 p = Variable(p)
             self.params.append(p)
-        self.params = tuple(self.params)  # Warning! Here params are Gaussian Parameters for each class
+        self.params = tuple(
+            self.params
+        )  # Warning! Here params are Gaussian Parameters for each class
 
     def remove_undeterminate(self, y, undeterminate_id=-1):
         for i in range(y.shape[0]):
@@ -67,9 +71,9 @@ class MultiGaussian(Prior):
         return y
 
     def __call__(self, y=[], cuda=False, *args, **kwargs):
-        with_undeterminate = kwargs.get('with_undeterminate', False)
+        with_undeterminate = kwargs.get("with_undeterminate", False)
         if with_undeterminate:
-            undeterminate_id = kwargs.get('undeterminate_id', -1)
+            undeterminate_id = kwargs.get("undeterminate_id", -1)
             y = self.remove_undeterminate(y, undeterminate_id)
         y = fromOneHot(y)
         if y.is_cuda:

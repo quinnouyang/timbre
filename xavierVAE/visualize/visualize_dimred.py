@@ -14,11 +14,12 @@ try:
 except:
     import matplotlib
 
-    matplotlib.use('agg')
+    matplotlib.use("agg")
     from matplotlib import pyplot as plt
 
 
 # Transformations
+
 
 class Embedding(object):
     def __init__(self, *args, **kwargs):
@@ -81,7 +82,9 @@ class DimensionReduction(Embedding):
         if target_dim is None:
             target_dim = self.init_dim
         if self.init_dim is None:
-            raise Exception('[Warning] Please inform a target dimension to invert data.')
+            raise Exception(
+                "[Warning] Please inform a target dimension to invert data."
+            )
         if z.ndim == 1:
             invert_z = np.zeros(target_dim)
             invert_z[self.dimensions] = z
@@ -95,6 +98,7 @@ class DimensionReduction(Embedding):
 ##########      Manifold (points + transformation)
 ###
 
+
 class Manifold(object):
     def __init__(self, transformation, z):
         super(Manifold, self).__init__()
@@ -105,7 +109,18 @@ class Manifold(object):
 
 
 class LatentManifold(Manifold):
-    def __init__(self, transformation, model, dataset, sample=False, metadata=None, layer=0, ids=None, *args, **kwargs):
+    def __init__(
+        self,
+        transformation,
+        model,
+        dataset,
+        sample=False,
+        metadata=None,
+        layer=0,
+        ids=None,
+        *args,
+        **kwargs
+    ):
         self.model = model
         self.transformation = transformation
         self.ids = dataset.shape[0] if ids is None else ids
@@ -118,9 +133,9 @@ class LatentManifold(Manifold):
         self.params = out[layer]
         if sample:
             # sample from distributions
-            self.orig_z = model.platent[layer]['dist'](*out[layer]).sample()
+            self.orig_z = model.platent[layer]["dist"](*out[layer]).sample()
         else:
             # sample mean
-            self.orig_z = model.platent[layer]['dist'](*out[layer]).sample()
+            self.orig_z = model.platent[layer]["dist"](*out[layer]).sample()
         self.orig_z = self.orig_z.cpu().detach().numpy()
         self.z = transformation.fit_transform(self.orig_z)
