@@ -3,11 +3,13 @@ Created on Wed Feb 14 18:26:20 2018
 
 @author: chemla
 """
+
 import numpy as np
 import torch
 import torch.nn as nn
 from collections import OrderedDict
 from xavierVAE.utils import oneHot
+
 
 class AbstractVAE(nn.Module):
 
@@ -17,21 +19,32 @@ class AbstractVAE(nn.Module):
     def __len__(self):
         return len(self.latent_params)
 
-    def __init__(self, input_params, latent_params, hidden_params=[{"dim": 800, "layers": 2}], optim_params={}, *args,
-                 **kwargs):
+    def __init__(
+        self,
+        input_params,
+        latent_params,
+        hidden_params=[{"dim": 800, "layers": 2}],
+        optim_params={},
+        *args,
+        **kwargs
+    ):
         super(AbstractVAE, self).__init__()
 
         # global attributes
         self.is_cuda = False
-        self.device = 'cpu'
+        self.device = "cpu"
         self.dump_patches = True
 
         # retaining constructor for save & load routines (stupid with dump_patches?)
-        if not hasattr(self, 'constructor'):
-            self.constructor = {'input_params': input_params, 'latent_params': latent_params,
-                                'hidden_params': hidden_params,
-                                'optim_params': optim_params, 'args': args,
-                                'kwargs': kwargs}  # remind construction arguments for easy load/save
+        if not hasattr(self, "constructor"):
+            self.constructor = {
+                "input_params": input_params,
+                "latent_params": latent_params,
+                "hidden_params": hidden_params,
+                "optim_params": optim_params,
+                "args": args,
+                "kwargs": kwargs,
+            }  # remind construction arguments for easy load/save
 
         # turn singleton specifications into lists
         if not issubclass(type(input_params), list):
@@ -44,13 +57,14 @@ class AbstractVAE(nn.Module):
         # check that hidden layers' specifications are well-numbered
         if len(hidden_params) < len(latent_params):
             print(
-                "[Warning] hidden layers specifcations is under-complete. Copying last configurations for missing layers")
+                "[Warning] hidden layers specifcations is under-complete. Copying last configurations for missing layers"
+            )
             last_layer = hidden_params[-1]
             while len(hidden_params) < len(latent_params):
                 hidden_params.append(last_layer)
 
-        self.pinput = input_params;
-        self.phidden = hidden_params;
+        self.pinput = input_params
+        self.phidden = hidden_params
         self.platent = latent_params
         self.init_modules(self.pinput, self.platent, self.phidden, *args, **kwargs)
 
@@ -64,15 +78,27 @@ class AbstractVAE(nn.Module):
         hidden_dec_params = []
         hidden_enc_params = []
         for l in range(len(hidden_params)):
-            hidden_dec_params.append(hidden_params[l].get('decoders', False) or hidden_params[l])
-            hidden_enc_params.append(hidden_params[l].get('encoders', False) or hidden_params[l])
-        self.encoders = self.make_encoders(input_params, latent_params, hidden_enc_params, *args, **kwargs)
-        self.decoders = self.make_decoders(input_params, latent_params, hidden_dec_params, *args, **kwargs)
+            hidden_dec_params.append(
+                hidden_params[l].get("decoders", False) or hidden_params[l]
+            )
+            hidden_enc_params.append(
+                hidden_params[l].get("encoders", False) or hidden_params[l]
+            )
+        self.encoders = self.make_encoders(
+            input_params, latent_params, hidden_enc_params, *args, **kwargs
+        )
+        self.decoders = self.make_decoders(
+            input_params, latent_params, hidden_dec_params, *args, **kwargs
+        )
 
-    def make_encoders(self, input_params, latent_params, hidden_params, *args, **kwargs):
+    def make_encoders(
+        self, input_params, latent_params, hidden_params, *args, **kwargs
+    ):
         return nn.ModuleList()
 
-    def make_decoders(self, input_params, latent_params, hidden_params, *args, **kwargs):
+    def make_decoders(
+        self, input_params, latent_params, hidden_params, *args, **kwargs
+    ):
         return nn.ModuleList()
 
     #############################################
@@ -94,11 +120,11 @@ class AbstractVAE(nn.Module):
         dict_losses = {}
         for i in range(len(losses)):
             loss = losses[i]
-            dict_losses['losses_%d' % i] = loss.item()
+            dict_losses["losses_%d" % i] = loss.item()
         return dict_losses
 
     # this is a global step function, where the optimize function should be overloaded
-    def step(self, loss, options={'epoch': 0}, *args, **kwargs):
+    def step(self, loss, options={"epoch": 0}, *args, **kwargs):
         # update optimizers in case
         self.update_optimizers(options)
         # optimize
@@ -109,11 +135,13 @@ class AbstractVAE(nn.Module):
     ###  Loss methods & optimization schemes
 
     def get_loss(self, *args):
-        return 0.
+        return 0.0
 
     def init_optimizer(self, optim_params={}):
         #        self.optimizers = {'default':getattr(torch.optim, optimMethod)(self.parameters(), **optimArgs)}
-        self.optimizers = {}  # optimizers is here a dictionary, in case of multi-step optimization
+        self.optimizers = (
+            {}
+        )  # optimizers is here a dictionary, in case of multi-step optimization
         self.schedulers = {}
 
     def update_optimizers(self, options):
@@ -133,7 +161,7 @@ class AbstractVAE(nn.Module):
     def cuda(self, device=None):
         if device is None:
             device = torch.cuda.current_device()
-        self.device = torch.device('cuda:%d' % device)
+        self.device = torch.device("cuda:%d" % device)
         self.is_cuda = True
         super(AbstractVAE, self).cuda(device)
 
@@ -153,23 +181,28 @@ class AbstractVAE(nn.Module):
         else:
             state_dict = self.state_dict()
         constructor = dict(self.constructor)
-        save = {'state_dict': state_dict, 'init_args': constructor, 'class': self.__class__,
-                'optimizers': self.optimizers, 'schedulers': self.schedulers}
+        save = {
+            "state_dict": state_dict,
+            "init_args": constructor,
+            "class": self.__class__,
+            "optimizers": self.optimizers,
+            "schedulers": self.schedulers,
+        }
         for k, v in kwargs.items():
             save[k] = v
         torch.save(save, filename)
 
     @classmethod
     def load(cls, pickle, with_optimizer=False):
-        init_args = pickle['init_args']
-        for k, v in init_args['kwargs'].items():
+        init_args = pickle["init_args"]
+        for k, v in init_args["kwargs"].items():
             init_args[k] = v
-        del init_args['kwargs']
-        vae = cls(**pickle['init_args'])
-        vae.load_state_dict(pickle['state_dict'])
+        del init_args["kwargs"]
+        vae = cls(**pickle["init_args"])
+        vae.load_state_dict(pickle["state_dict"])
         if with_optimizer:
-            vae.optimizers = pickle.get('optimizers', {})
-            vae.schedulers = pickle.get('optimizers', {})
+            vae.optimizers = pickle.get("optimizers", {})
+            vae.schedulers = pickle.get("optimizers", {})
         else:
             vae.init_optimizer(vae.optim_params)
 
@@ -187,8 +220,8 @@ class AbstractVAE(nn.Module):
             if type(x) == list:
                 x = np.array(x)
             if type(x) == np.ndarray:
-                if x.dtype != 'float32':
-                    x = x.astype('float32')
+                if x.dtype != "float32":
+                    x = x.astype("float32")
                 x = torch.from_numpy(x)
             x = x.to(self.device, dtype=torch.float32)
         for i in x:
@@ -213,15 +246,14 @@ class AbstractVAE(nn.Module):
                     if issubclass(type(plabel), list):
                         label_dim = 0
                         for pl in plabel:
-                            label_dim += pl['dim']
+                            label_dim += pl["dim"]
                     else:
-                        label_dim = plabel['dim']
+                        label_dim = plabel["dim"]
                     x = oneHot(x, label_dim)
-                if x.dtype != 'float32':
-                    x = x.astype('float32')
+                if x.dtype != "float32":
+                    x = x.astype("float32")
                 x = torch.from_numpy(x)
             x = x.to(self.device, dtype=torch.float32)
         for i in x:
             i.requires_grad_(requires_grad)
         return x
-
