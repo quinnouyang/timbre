@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from quinnVAE.heidenreich.dataclass import VAEOutput
 
 
 class VAE(nn.Module):
