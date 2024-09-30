@@ -25,5 +25,5 @@ class BaseVAE(nn.Module):
         pass
 
     @abstractmethod
-    def loss_function(self, *inputs: Any, **kwargs) -> Tensor:
+    def loss_function(self, *inputs: Any, **kwargs) -> dict:
         pass
