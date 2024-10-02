@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from torch.distributions.multivariate_normal import MultivariateNormal
 from quinnVAE.heidenreich.dataclass import VAEOutput
 
 
@@ -14,36 +16,36 @@ class VAE(nn.Module):
         latent_dim (int): Dimensionality of the latent space.
     """
 
-    def __init__(self, input_dim, hidden_dim, latent_dim):
+    def __init__(self, input_dim: int, hidden_dim: int, latent_dim: int) -> None:
         super(VAE, self).__init__()
 
         self.encoder = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim, hidden_dim // 2),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim // 2, hidden_dim // 4),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim // 4, hidden_dim // 8),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim // 8, 2 * latent_dim),  # 2 for mean and variance.
         )
-        self.softplus = nn.Softplus()
+        self.softplus = nn.Softplus()  # Smooth-RELU to constraint output to (0, +inf)
 
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim // 8),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim // 8, hidden_dim // 4),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim // 4, hidden_dim // 2),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim // 2, hidden_dim),
-            nn.SiLU(),  # Swish activation function
+            nn.SiLU(),
             nn.Linear(hidden_dim, input_dim),
             nn.Sigmoid(),
         )
 
-    def encode(self, x, eps: float = 1e-8):
+    def encode(self, x: torch.Tensor, eps: float = 1e-8) -> MultivariateNormal:
         """
         Encodes the input data into the latent space.
 
@@ -55,13 +57,13 @@ class VAE(nn.Module):
             torch.distributions.MultivariateNormal: Normal distribution of the encoded data.
         """
         x = self.encoder(x)
-        mu, logvar = torch.chunk(x, 2, dim=-1)
+        mu, logvar = torch.chunk(x, 2, dim=-1)  # Mean and log-variance
         scale = self.softplus(logvar) + eps
         scale_tril = torch.diag_embed(scale)
 
-        return torch.distributions.MultivariateNormal(mu, scale_tril=scale_tril)
+        return MultivariateNormal(mu, scale_tril=scale_tril)
 
-    def reparameterize(self, dist):
+    def reparameterize(self, dist: MultivariateNormal):
         """
         Reparameterizes the encoded data to sample from the latent space.
 
@@ -72,7 +74,7 @@ class VAE(nn.Module):
         """
         return dist.rsample()
 
-    def decode(self, z):
+    def decode(self, z: torch.Tensor):
         """
         Decodes the data from the latent space to the original input space.
 
@@ -84,7 +86,7 @@ class VAE(nn.Module):
         """
         return self.decoder(z)
 
-    def forward(self, x, compute_loss: bool = True):
+    def forward(self, x: torch.Tensor, compute_loss: bool = True) -> VAEOutput:
         """
         Performs a forward pass of the VAE.
 
