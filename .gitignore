@@ -1,4 +1,4 @@
-# Python Stuff
+# Python
 .ipynb_checkpoints
 __pycache__
 .python-version
@@ -11,8 +11,6 @@ runs
 
 # Miscellaneous
 **/.DS_Store
-/Natsiou_Model/PyTorch/nsynth-train/
-/Natsiou_Model/PyTorch/data/
 
 # LaTeX
 **/*.aux
