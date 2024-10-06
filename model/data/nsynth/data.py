@@ -3,63 +3,31 @@ import json
 from os import path, listdir
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Literal, Any
+from typing import NamedTuple, Literal, Any
 from torch import Tensor, from_numpy
 from torch.utils.data import Dataset
 from scipy.io.wavfile import read
 
-
-class NSynthExample:
-    """NSynth example audio and [features](https://magenta.tensorflow.org/datasets/nsynth#example-features)"""
-
-    def __init__(
-        self,
-        note: int,
-        note_str: str,
-        instrument: int,
-        instrument_str: str,
-        pitch: int,
-        velocity: int,
-        sample_rate: int,
-        audio: Tensor,
-        qualities: list[Literal[0, 1]],
-        qualities_str: list[str],
-        instrument_family: int,
-        instrument_family_str: str,
-        instrument_source: int,
-        instrument_source_str: str,
-    ) -> None:
-        self.note = note
-        self.note_str = note_str
-        self.instrument = instrument
-        self.instrument_str = instrument_str
-        self.pitch = pitch
-        self.velocity = velocity
-        self.sample_rate = sample_rate
-        self.audio = audio
-        self.qualities = qualities
-        self.qualities_str = qualities_str
-        self.instrument_family = instrument_family
-        self.instrument_family_str = instrument_family_str
-        self.instrument_source = instrument_source
-        self.instrument_source_str = instrument_source_str
-
-    def __repr__(self) -> str:
-        """Represent the example. See the [NSynth example features](https://magenta.tensorflow.org/datasets/nsynth#example-features).
-
-        Returns
-        -------
-        Primary non-audio features of the example : `str`
-            "note" : `int`
-                A unique integer identifier for the note
-            "note_str" : `str`
-                A unique string identifier for the note in the format `<instrument_str>-<pitch>-<velocity>`
-            "pitch" : `int`
-                The 0-based MIDI pitch in the range `[0, 127]`
-            "qualities_str" : `int`
-                A list IDs of which qualities are present in this note selected from the sonic qualities list
-        """
-        return f"NSynthExample(note={self.note}, note_str={self.note_str}, pitch={self.pitch}, qualities_str={self.qualities_str})"
+NSynthExample = NamedTuple(
+    "NSynthExample",
+    [
+        ("note", int),
+        ("note_str", str),
+        ("instrument", int),
+        ("instrument_str", str),
+        ("pitch", int),
+        ("velocity", int),
+        ("sample_rate", int),
+        ("audio", Tensor),
+        ("qualities", list[Literal[0, 1]]),
+        ("qualities_str", list[str]),
+        ("instrument_family", int),
+        ("instrument_family_str", str),
+        ("instrument_source", int),
+        ("instrument_source_str", str),
+    ],
+)
+"NSynth example audio and [features](https://magenta.tensorflow.org/datasets/nsynth#example-features)"
 
 
 class NSynthDataset(Dataset):
