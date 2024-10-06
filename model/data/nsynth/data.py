@@ -27,11 +27,11 @@ NSynthExample = NamedTuple(
         ("instrument_source_str", str),
     ],
 )
-"NSynth example audio and [features](https://magenta.tensorflow.org/datasets/nsynth#example-features)"
+"NSynth example [features](https://magenta.tensorflow.org/datasets/nsynth#example-features)"
 
 
 class NSynthDataset(Dataset):
-    """[NSynth dataset](https://magenta.tensorflow.org/datasets/nsynth)
+    """A subset of the [NSynth dataset](https://magenta.tensorflow.org/datasets/nsynth)
 
     Parameters
     ----------
@@ -56,15 +56,14 @@ class NSynthDataset(Dataset):
 
             # Verify that audio_dir and annotations_file alphabetically map 1:1
             assert (
-                len(self.keys) == len(self.audio_filenames)
-                and self.keys == self.audio_filenames
-            ), f"Expected every key/note_str in annotations_file to match every filename in audio_dir.\n{set(self.keys) - set(self.audio_filenames)} is missing in audio_dir and/or {set(self.audio_filenames) - set(self.keys)} is missing in annotations_file"
+                self.keys == self.audio_filenames
+            ), f"Expected every key/note_str from annotations_file to match every filename from audio_dir\n Instead, audio_dir is missing {set(self.keys) - set(self.audio_filenames)} and/or annotations_file is mising {set(self.audio_filenames) - set(self.keys)}"
 
     def __len__(self):
         return len(self.keys)
 
-    def __getitem__(self, i: int) -> tuple[Tensor, int, str, int, list[str]]:
-        """Load the `i`-th example from the dataset. See the [NSynth example features](https://magenta.tensorflow.org/datasets/nsynth#example-features).
+    def __getitem__(self, i: int) -> NSynthExample:
+        """Load the `i`-th example
 
         Parameters
         ----------
@@ -73,26 +72,16 @@ class NSynthDataset(Dataset):
 
         Returns
         -------
-        Audio and primary features of the example : `tuple`
-            "audio" : `Tensor`
-                A list of audio samples represented as floating point values in the range `[-1, 1]`
-            "note" : `int`
-                A unique integer identifier for the note
-            "note_str" : `str`
-                A unique string identifier for the note in the format `<instrument_str>-<pitch>-<velocity>`
-            "pitch" : `int`
-                The 0-based MIDI pitch in the range `[0, 127]`
-            "qualities_str" : `int`
-                A list IDs of which qualities are present in this note selected from the sonic qualities list
+        NSynth example features : `NSynthExample`
+            See the [NSynth example features](https://magenta.tensorflow.org/datasets/nsynth#example-features)
         """
-        e = NSynthExample(
+        return NSynthExample(
+            **self.annotations[self.keys[i]],
             audio=from_numpy(
                 read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
             )
             / 32768.0,  # 2**15 (to normalize 16-bit samples to [-1, 1])
-            **self.annotations[self.keys[i]],
         )
-        return e.audio, e.note, e.note_str, e.pitch, e.qualities_str
 
 
 if __name__ == "__main__":
