@@ -5,7 +5,7 @@ from os import path, listdir
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import NamedTuple, Literal, Any
-from torch import Tensor, from_numpy
+from torch import Tensor, from_numpy, float32
 from torch.utils.data import Dataset
 from contextlib import suppress
 from model.utils import read
@@ -91,11 +91,15 @@ class NSynthDataset(Dataset):
         with suppress(KeyError):  # Remove the "qualities_str" key, if not already
             annotation.pop("qualities_str")
 
-        return stft_fn(
-            from_numpy(
-                read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
+        return (
+            stft_fn(
+                from_numpy(
+                    read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
+                )
             )
-        ).flatten()
+            .flatten()
+            .to(float32)
+        )
 
         return NSynthExample(
             **annotation,
