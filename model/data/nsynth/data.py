@@ -7,6 +7,8 @@ from typing import NamedTuple, Literal, Any
 from torch import Tensor, from_numpy
 from torch.utils.data import Dataset
 from scipy.io.wavfile import read
+from contextlib import suppress
+
 
 NSynthExample = NamedTuple(
     "NSynthExample",
@@ -20,7 +22,7 @@ NSynthExample = NamedTuple(
         ("sample_rate", int),
         ("audio", Tensor),
         ("qualities", list[Literal[0, 1]]),
-        ("qualities_str", list[str]),
+        # ("qualities_str", list[str]),  # Exclude because it raises a RuntimeError from the default DataLoader collate_fn when it varies in length
         ("instrument_family", int),
         ("instrument_family_str", str),
         ("instrument_source", int),
@@ -75,8 +77,12 @@ class NSynthDataset(Dataset):
         NSynth example features : `NSynthExample`
             See the [NSynth example features](https://magenta.tensorflow.org/datasets/nsynth#example-features)
         """
+        annotation: dict = self.annotations[self.keys[i]]
+        with suppress(KeyError):  # Remove the "qualities_str" key, if not already
+            annotation.pop("qualities_str")
+
         return NSynthExample(
-            **self.annotations[self.keys[i]],
+            **annotation,
             audio=from_numpy(
                 read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
             )
