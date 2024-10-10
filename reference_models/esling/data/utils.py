@@ -1,9 +1,9 @@
 """
 
  Import toolbox       : Import utilities
-
+ 
  This file contains lots of useful utilities for dataset import.
-
+ 
  Author               : Philippe Esling
                         <esling@ircam.fr>
 
@@ -12,44 +12,28 @@
 import numpy as np
 import os
 import re
-
 # Package-specific imports
 from . import audio
 from .metadata import metadataCallbacks
 
-
 def esc(x):
-    """Handles escape characters in string matching"""
-    # Define desired replacements here
-    rep = {
-        "%%": "%%%%",
-        "^%^": "%%^",
-        "%$$": "%%$",
-        "%(": "%%(",
-        "%)": "%%)",
-        "%.": "%%.",
-        "%[": "%%[",
-        "%]": "%%]",
-        "%*": "%%*",
-        "%+": "%%+",
-        "%-": "%%-",
-        "%?": "%%?",
-    }
-    # use these three lines to do the replacement
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile("|".join(rep.keys()))
-    return pattern.sub(lambda m: rep[re.escape(m.group(0))], x)
-
+   """ Handles escape characters in string matching """
+   # Define desired replacements here
+   rep = {'%%':'%%%%','^%^':'%%^', '%$$':'%%$','%(':'%%(','%)':'%%)', '%.':'%%.',
+          '%[':'%%[','%]':'%%]','%*':'%%*','%+':'%%+','%-':'%%-','%?':'%%?'}
+   # use these three lines to do the replacement
+   rep = dict((re.escape(k), v) for k, v in rep.items())
+   pattern = re.compile("|".join(rep.keys()))
+   return pattern.sub(lambda m: rep[re.escape(m.group(0))], x)
 
 def tableToTensor(table):
-    """Transform a table of tensors to a single tensor"""
+    """  Transform a table of tensors to a single tensor """
     tensorSize = table[0].shape
     tensorSizeTable = [-1]
     for i in range(tensorSize.shape[0]):
         tensorSizeTable[i + 1] = tensorSize[i]
-    merge = nn.Sequential().add(nn.JoinTable(1)).add(nn.View(unpack(tensorSizeTable)))
-    return merge.forward(table)
-
+    merge = nn.Sequential().add(nn.JoinTable(1)).add(nn.View(unpack(tensorSizeTable)));
+    return merge.forward(table);
 
 def windowData(inputData, windowDim=0, wSize=16, wStep=1):
     """
@@ -57,7 +41,7 @@ def windowData(inputData, windowDim=0, wSize=16, wStep=1):
     The returned data table does not allocate memory to enhance performance !
     """
     # Just skip empty data
-    if (inputData is None) or (inputData[1] is None):
+    if ((inputData is None) or (inputData[1] is None)): 
         return None
     tDim = windowDim
     size = wSize
@@ -69,57 +53,53 @@ def windowData(inputData, windowDim=0, wSize=16, wStep=1):
     # Perform a set of narrows
     for i in range(rep):
         currentOutput[i] = inputData.narrow(tDim, ((i - 1) * step + 1), size)
-    return currentOutput
-
+    return currentOutput;
 
 def mkdir(path):
-    """Create a directory"""
-    assert (os.popen("mkdir -p %s" % path), "could not create directory")
-
+    """ Create a directory """
+    assert(os.popen('mkdir -p %s' % path), 'could not create directory')
 
 def tensorDifference(ref, rem):
-    """Returns the difference between two tensors"""
+    """ Returns the difference between two tensors """
     finalTensor = np.zeros(ref.shape[0])
     i = 1
     for j in range(ref.shape[0]):
         found = 0
         for k in range(rem.shape[0]):
-            if rem[k] == ref[j]:
+            if (rem[k] == ref[j]):
                 found = 1
-        if found == 0:
+        if (found == 0):
             finalTensor[i] = ref[j]
             i = i + 1
     return finalTensor[:i]
 
-
 def tensorIntersect(ref, rem):
-    """Returns the intersection between two tensors"""
+    """ Returns the intersection between two tensors """
     finalTensor = np.zeros(ref.shape[0])
-    i = 1
+    i = 1;
     for j in range(ref.shape[0]):
-        found = 0
+        found = 0;
         for k in range(rem.shape[0]):
-            if rem[k] == ref[j]:
+            if (rem[k] == ref[j]):
                 found = 1
-        if found == 1:
+        if (found == 1):
             finalTensor[i] = ref[j]
             i = i + 1
-    if i == 1:
+    if (i == 1):
         return None
-    return finalTensor[: i - 1]
-
+    return finalTensor[:i-1]
 
 def tableDifference(ref, rem):
-    """Returns the difference between two tables"""
+    """ Returns the difference between two tables """
     finalTable = []
     for j in range(len(ref)):
-        found = 0
-        for k in range(len(rem)):
-            if rem[k] == ref[j]:
+        found = 0;
+        for k in range(len(rem)): 
+            if (rem[k] == ref[j]):
                 found = 1
-        if found == 0:
+        if (found == 0): 
             finalTable.append(ref[j])
-    return finalTable
+    return finalTable;
 
 
 """
@@ -314,7 +294,6 @@ end
 
 """
 
-
 # Function to recursively list directories of given type
 def listDirectories(baseDir):
     filesList = []
@@ -323,31 +302,30 @@ def listDirectories(baseDir):
         path = os.path.join(baseDir, name)
         if os.path.isdir(path):
             filesList.append({})
-            filesList[insertID]["path"] = path
-            filesList[insertID]["name"] = name
+            filesList[insertID]["path"] = path;
+            filesList[insertID]["name"] = name;
             insertID = insertID + 1
-    return filesList
-
+    return filesList;
 
 def getAudioFileProperty(fileName):
-    fileProperties = {}
-    fileProperties["channels"] = 0
-    fileProperties["rate"] = 0
-    fileProperties["size"] = 0
-    fileProperties["type"] = ""
-    fileProperties["duration"] = 0
+    fileProperties = {};
+    fileProperties["channels"] = 0;
+    fileProperties["rate"] = 0;
+    fileProperties["size"] = 0;
+    fileProperties["type"] = "";
+    fileProperties["duration"] = 0;
     # Get duration of file
-    pfile = os.popen('soxi "' + fileName + '"')
+    pfile = os.popen('soxi "' + fileName + '"');
     for properties in pfile:
         typeV = properties[:-1].split(": ")
-        if len(typeV) > 1:
-            if typeV[0][:8] == "Channels":
+        if (len(typeV) > 1):
+            if (typeV[0][:8] == 'Channels'):
                 fileProperties["channels"] = float(typeV[1])
-            if typeV[0][:11] == "Sample Rate":
+            if (typeV[0][:11] == 'Sample Rate'):
                 fileProperties["rate"] = float(typeV[1])
-            if typeV[0][:9] == "File Size":
+            if (typeV[0][:9] == 'File Size'):
                 fileProperties["size"] = float(typeV[1][:-1])
-            if typeV[0][:15] == "Sample Encoding":
+            if (typeV[0][:15] == 'Sample Encoding'):
                 fileProperties["type"] = typeV[1]
     pfile.close()
     pfile = os.popen('soxi -D "' + fileName + '"')
@@ -356,288 +334,225 @@ def getAudioFileProperty(fileName):
     pfile.close()
     return fileProperties
 
-
 def exportMetadataProperties(fID, task, metadata, classes):
-    fID.write("#-\n" + task + "\n#-\n")
-    if metadata is None:
+    fID.write('#-\n' + task + '\n#-\n')
+    if (metadata is None):
         return None
-    if task == "onset":
+    if (task == 'onset'):
         print("Onset check not implemented.")
-    elif task == "drum":
-        fID.write("Number of annotated \t : " + str(len(metadata)) + "\n")
-        fID.write("Number of classes \t : " + str(classes["_length"]) + "\n")
-        fID.write("Instance values :\n")
+    elif (task == 'drum'):
+        fID.write('Number of annotated \t : ' + str(len(metadata)) + '\n')
+        fID.write('Number of classes \t : ' + str(classes["_length"]) + '\n')
+        fID.write('Instance values :\n')
         tmpClasses = np.zeros(classes["_length"])
         curID = 0
         for k, v in classes.items():
-            if k != "_length":
+            if (k != "_length"):
                 nbEx = 0
                 for f in range(len(metadata)):
-                    if metadata[f][0]:
+                    if (metadata[f][0]):
                         for g in metadata[f][0]["labels"]:
-                            if g == v:
+                            if (g == v): 
                                 nbEx = nbEx + 1
                 tmpClasses[curID] = nbEx
                 curID = curID + 1
-        if len(tmpClasses) == 0:
-            fID.write("**\n**\n**\n WARNING EMPTY CLASSES **\n**\n**\n**\n")
+        if (len(tmpClasses) == 0):
+            fID.write('**\n**\n**\n WARNING EMPTY CLASSES **\n**\n**\n**\n')
             return
-        fID.write("Min \t : " + str(np.min(tmpClasses)) + "\n")
-        fID.write("Max \t : " + str(np.max(tmpClasses)) + "\n")
-        fID.write("Mean \t : " + str(np.mean(tmpClasses)) + "\n")
-        fID.write("Var \t : " + str(np.std(tmpClasses)) + "\n")
+        fID.write('Min \t : ' + str(np.min(tmpClasses)) + '\n')
+        fID.write('Max \t : ' + str(np.max(tmpClasses)) + '\n')
+        fID.write('Mean \t : ' + str(np.mean(tmpClasses)) + '\n')
+        fID.write('Var \t : ' + str(np.std(tmpClasses)) + '\n')
         tmpAnnote, fullTimes = np.zeros(len(metadata)), np.array([])
         for f in range(len(metadata)):
-            if metadata[f][0]:
+            if (metadata[f][0]):
                 tmpAnnote[f] = metadata[f][0]["time"].shape[0]
                 fullTimes = np.concatenate((fullTimes, metadata[f][0]["time"]))
-        fID.write("Annotation lengths :\n")
-        fID.write("Min \t : " + str(np.min(tmpAnnote)) + "\n")
-        fID.write("Max \t : " + str(np.max(tmpAnnote)) + "\n")
-        fID.write("Mean \t : " + str(np.mean(tmpAnnote)) + "\n")
-    elif task == "tempo":
-        fID.write("Number of annotated \t : " + str(len(metadata)) + "\n")
+        fID.write('Annotation lengths :\n')
+        fID.write('Min \t : ' + str(np.min(tmpAnnote)) + '\n')
+        fID.write('Max \t : ' + str(np.max(tmpAnnote)) + '\n')
+        fID.write('Mean \t : ' + str(np.mean(tmpAnnote)) + '\n')
+    elif (task == 'tempo'):
+        fID.write('Number of annotated \t : ' + str(len(metadata)) + '\n')
         tmpTempo = np.array(metadata)
-        fID.write("Tempo values :\n")
-        fID.write("Min \t : " + str(np.min(tmpTempo)) + "\n")
-        fID.write("Max \t : " + str(np.max(tmpTempo)) + "\n")
-        fID.write("Mean \t : " + str(np.mean(tmpTempo)) + "\n")
-        fID.write("Var \t : " + str(np.std(tmpTempo)) + "\n")
-    elif task == "cover":
+        fID.write('Tempo values :\n')
+        fID.write('Min \t : ' + str(np.min(tmpTempo)) + '\n')
+        fID.write('Max \t : ' + str(np.max(tmpTempo)) + '\n')
+        fID.write('Mean \t : ' + str(np.mean(tmpTempo)) + '\n')
+        fID.write('Var \t : ' + str(np.std(tmpTempo)) + '\n')
+    elif (task == 'cover'):
         curID, coverTable = 0, [None] * len(metadata)
         for v in metadata:
             coverTable[curID] = len(v)
             curID = curID + 1
-        fID.write("Number of annotated \t : " + str(len(coverTable)) + "\n")
+        fID.write('Number of annotated \t : ' + str(len(coverTable)) + '\n')
         tmpCover = np.array(coverTable)
-        fID.write(
-            "Number not found (!) \t : " + str(np.sum((tmpCover == 0) * 1)) + "\n"
-        )
+        fID.write('Number not found (!) \t : ' + str(np.sum((tmpCover == 0) * 1)) + '\n')
         tmpCover = tmpCover[tmpCover != 0]
-        fID.write("Cover properties :\n")
-        fID.write("Number found \t : " + str(tmpCover.shape[0]) + "\n")
-        fID.write("Min \t : " + str(np.min(tmpCover)) + "\n")
-        fID.write("Max \t : " + str(np.max(tmpCover)) + "\n")
-        fID.write("Mean \t : " + str(np.mean(tmpCover)) + "\n")
-    elif task == "melody":
-        fID.write("Number of annotated \t : " + str(len(metadata)) + "\n")
-        tmpAnnote, fullTimes, fullLabels = (
-            np.zeros(len(metadata)),
-            np.array([]),
-            np.array([]),
-        )
+        fID.write('Cover properties :\n')
+        fID.write('Number found \t : ' + str(tmpCover.shape[0]) + '\n')
+        fID.write('Min \t : ' + str(np.min(tmpCover)) + '\n')
+        fID.write('Max \t : ' + str(np.max(tmpCover)) + '\n')
+        fID.write('Mean \t : ' + str(np.mean(tmpCover)) + '\n')
+    elif (task == 'melody'):
+        fID.write('Number of annotated \t : ' + str(len(metadata)) + '\n');
+        tmpAnnote, fullTimes, fullLabels = np.zeros(len(metadata)), np.array([]), np.array([]);
         for f in range(len(metadata)):
-            if metadata[f]:
-                if len(metadata[f][0]["time"]) > 0:
+            if (metadata[f]):
+                if (len(metadata[f][0]["time"]) > 0):
                     tmpAnnote[f] = metadata[f][0]["time"].shape[0]
                     fullTimes = np.concatenate((fullTimes, metadata[f][0]["time"]))
                     fullLabels = np.concatenate((fullLabels, metadata[f][0]["labels"]))
                 else:
-                    fID.write("Warning : Empty metadata for " + str(f) + "\n")
-        fID.write("Annotation lengths :\n")
-        fID.write("Min \t : " + str(np.min(tmpAnnote)) + "\n")
-        fID.write("Max \t : " + str(np.max(tmpAnnote)) + "\n")
-        fID.write("Mean \t : " + str(np.mean(tmpAnnote)) + "\n")
-        fID.write("Pitch values :\n")
-        if len(fullLabels) > 0:
-            fID.write("Min \t : " + str(np.min(fullLabels)) + "\n")
-            fID.write("Max \t : " + str(np.max(fullLabels)) + "\n")
-            fID.write("Mean \t : " + str(np.mean(fullLabels)) + "\n")
+                    fID.write('Warning : Empty metadata for ' + str(f) + '\n')
+        fID.write('Annotation lengths :\n')
+        fID.write('Min \t : ' + str(np.min(tmpAnnote)) + '\n')
+        fID.write('Max \t : ' + str(np.max(tmpAnnote)) + '\n')
+        fID.write('Mean \t : ' + str(np.mean(tmpAnnote)) + '\n')
+        fID.write('Pitch values :\n')
+        if (len(fullLabels) > 0):
+            fID.write('Min \t : ' + str(np.min(fullLabels)) + '\n')
+            fID.write('Max \t : ' + str(np.max(fullLabels)) + '\n')
+            fID.write('Mean \t : ' + str(np.mean(fullLabels)) + '\n')
         else:
-            fID.write("**\n**\n**\n WARNING EMPTY LABELS **\n**\n**\n**\n")
+            fID.write('**\n**\n**\n WARNING EMPTY LABELS **\n**\n**\n**\n')
     else:
-        fID.write("Number of annotated \t : " + str(len(metadata)) + "\n")
+        fID.write('Number of annotated \t : ' + str(len(metadata)) + '\n')
         if (classes) and (classes["_length"] > 0):
-            fID.write("Number of classes \t : " + str(classes["_length"]) + "\n")
-            fID.write("Instance values :\n")
+            fID.write('Number of classes \t : ' + str(classes["_length"]) + '\n')
+            fID.write('Instance values :\n')
             tmpClasses = np.zeros(classes["_length"])
             curID = 0
             for k, v in classes.items():
-                if k != "_length":
+                if (k != "_length"):
                     nbEx = 0
                     for f in range(len(metadata)):
-                        if metadata[f] == v:
+                        if (metadata[f] == v):
                             nbEx = nbEx + 1
                     tmpClasses[curID] = nbEx
                     curID = curID + 1
-            fID.write("Min \t : " + str(np.min(tmpClasses)) + "\n")
-            fID.write("Max \t : " + str(np.max(tmpClasses)) + "\n")
-            fID.write("Mean \t : " + str(np.mean(tmpClasses)) + "\n")
-            fID.write("Var \t : " + str(np.std(tmpClasses)) + "\n")
-
+            fID.write('Min \t : ' + str(np.min(tmpClasses)) + '\n')
+            fID.write('Max \t : ' + str(np.max(tmpClasses)) + '\n')
+            fID.write('Mean \t : ' + str(np.mean(tmpClasses)) + '\n')
+            fID.write('Var \t : ' + str(np.std(tmpClasses)) + '\n')
 
 def testDatasetCollection(path):
-    fIDm = open(path + "/datasets-metadata.txt", "w")
-    fIDt = open(path + "/datasets-tasks.txt", "w")
-    fIDt.write("%16s\t" % "Datasets")
+    fIDm = open(path + '/datasets-metadata.txt', 'w')
+    fIDt = open(path + '/datasets-tasks.txt', 'w')
+    fIDt.write("%16s\t" % 'Datasets')
     taskTable, taskID = {}, 0
     print(metadataCallbacks)
-    for k, v in metadataCallbacks.items():
-        if k != "default":
+    for k, v in (metadataCallbacks.items()):
+        if (k != 'default'):
             taskTable[taskID] = k
             taskID = taskID + 1
             tmpKey = k
-        if len(k) > 7:
+        if (len(k) > 7):
             tmpKey = k[:7]
-            fIDt.write("%s\t" % tmpKey)
-    fIDt.write("\n")
+            fIDt.write('%s\t' % tmpKey);
+    fIDt.write('\n');
     # First list all datasets
     datasetsList = listDirectories(path)
-    print("Found datasets :")
+    print('Found datasets :');
     for d in range(len(datasetsList)):
-        print("  * " + datasetsList[d]["name"])
+        print('  * ' + datasetsList[d]["name"])
         # Now check which task we found
-        taskList = listDirectories(datasetsList[d]["path"] + "/metadata/")
-        fIDm.write("***\n***\n" + datasetsList[d]["name"] + "\n***\n***\n\n")
-        fIDt.write("%16s\t" % datasetsList[d]["name"])
+        taskList = listDirectories(datasetsList[d]["path"] + '/metadata/')
+        fIDm.write('***\n***\n' + datasetsList[d]["name"] + '\n***\n***\n\n')
+        fIDt.write('%16s\t' % datasetsList[d]["name"])
         # Parse all tasks
         finalTasks = {}
-        curTask = 0
-        print("    - Parsing tasks folders.")
+        curTask = 0;
+        print('    - Parsing tasks folders.')
         for t in range(len(taskList)):
-            if taskList[t]["name"] != "raw":
-                print("      o " + taskList[t]["name"])
+            if (taskList[t]["name"] != 'raw'):
+                print('      o ' + taskList[t]["name"])
                 finalTasks[curTask] = taskList[t]["name"]
                 curTask = curTask + 1
         wroteTask = np.zeros(len(finalTasks))
         for k in range(len(taskTable)):
             foundID = 0
             for k2 in range(len(finalTasks)):
-                if finalTasks[k2] == taskTable[k]:
+                if (finalTasks[k2] == taskTable[k]):
                     foundID = 1
                     wroteTask[k2] = 1
                     break
-            if foundID == 1:
-                fIDt.write("1")
+            if (foundID == 1):
+                fIDt.write('1')
             else:
-                fIDt.write("0")
-            fIDt.write("\t")
-        fIDt.write("\n")
+                fIDt.write('0')
+            fIDt.write('\t')
+        fIDt.write('\n')
         for k in range(wroteTask.shape[0]):
-            if wroteTask[k] == 0:
-                fIDt.write("ERROR - unfound task : " + finalTasks[k] + "\n")
-        print("    - Importing metadatas.")
+            if (wroteTask[k] == 0):
+                fIDt.write('ERROR - unfound task : ' + finalTasks[k] + '\n')
+        print('    - Importing metadatas.')
         # Create a dataset from the task
         startPath, fileN = os.path.split(datasetsList[d]["path"])
-        audioOptions = {
-            "dataDirectory": datasetsList[d]["path"],
-            "dataPrefix": startPath,
-            "tasks": finalTasks,
-        }
+        audioOptions = {"dataDirectory":datasetsList[d]["path"], "dataPrefix":startPath, "tasks":finalTasks };
         audioSet = audio.DatasetAudio(audioOptions)
         audioSet.importMetadataTasks()
-        print("    - Storing file properties.")
-        fIDm.write("#-\n" + "File properties" + "\n#-\n")
+        print('    - Storing file properties.')
+        fIDm.write('#-\n' + 'File properties' + '\n#-\n')
         # Create a set of overall properties
-        setRates, setTypes, setChannels, setDurations = (
-            {},
-            {},
-            {},
-            np.zeros(len(audioSet.files)),
-        )
-        # Now check properties of the files
+        setRates, setTypes, setChannels, setDurations = {}, {}, {}, np.zeros(len(audioSet.files))
+        # Now check properties of the files 
         for f in range(len(audioSet.files)):
-            fileProp = getAudioFileProperty(audioSet.files[f])
-            if setRates.get(fileProp["rate"]):
+            fileProp = getAudioFileProperty(audioSet.files[f]);
+            if (setRates.get(fileProp["rate"])):
                 setRates[fileProp["rate"]] = setRates[fileProp["rate"]] + 1
-            else:
+            else: 
                 setRates[fileProp["rate"]] = 1
-            if setTypes.get(fileProp["type"]):
+            if (setTypes.get(fileProp["type"])):
                 setTypes[fileProp["type"]] = setTypes[fileProp["type"]] + 1
             else:
                 setTypes[fileProp["type"]] = 1
-            if setChannels.get(fileProp["channels"]):
-                setChannels[fileProp["channels"]] = (
-                    setChannels[fileProp["channels"]] + 1
-                )
-            else:
-                setChannels[fileProp["channels"]] = 1
+            if (setChannels.get(fileProp["channels"])): 
+                setChannels[fileProp["channels"]] = setChannels[fileProp["channels"]] + 1; 
+            else: 
+                setChannels[fileProp["channels"]] = 1;
             setDurations[f] = fileProp["duration"]
-        fIDm.write(" * Rates\n")
+        fIDm.write(' * Rates\n');
         for k, v in setRates.items():
-            fIDm.write("    - " + str(k) + " \t : " + str(v) + "\n")
-        fIDm.write(" * Types\n")
+            fIDm.write('    - ' + str(k) + ' \t : ' + str(v) + '\n')
+        fIDm.write(' * Types\n')
         for k, v in setTypes.items():
-            fIDm.write("    - " + str(k) + " \t : " + str(v) + "\n")
-        fIDm.write(" * Channels\n")
+            fIDm.write('    - ' + str(k) + ' \t : ' + str(v) + '\n')
+        fIDm.write(' * Channels\n')
         for k, v in setChannels.items():
-            fIDm.write("    - " + str(k) + " \t : " + str(v) + "\n")
-        fIDm.write(" * Durations\n")
-        fIDm.write("    - Minimum \t : " + str(np.min(setDurations)) + "\n")
-        fIDm.write("    - Maximum \t : " + str(np.max(setDurations)) + "\n")
-        fIDm.write("    - Mean \t : " + str(np.mean(setDurations)) + "\n")
-        fIDm.write("    - Variance \t : " + str(np.std(setDurations)) + "\n")
-        fIDm.write("\n")
-        print("    - Metadata properties.")
+            fIDm.write('    - ' + str(k) + ' \t : ' + str(v) + '\n')
+        fIDm.write(' * Durations\n');
+        fIDm.write('    - Minimum \t : ' + str(np.min(setDurations)) + '\n');
+        fIDm.write('    - Maximum \t : ' + str(np.max(setDurations)) + '\n');
+        fIDm.write('    - Mean \t : ' + str(np.mean(setDurations)) + '\n');
+        fIDm.write('    - Variance \t : ' + str(np.std(setDurations)) + '\n');
+        fIDm.write('\n');
+        print('    - Metadata properties.');
         for t in range(len(finalTasks)):
-            exportMetadataProperties(
-                fIDm,
-                finalTasks[t],
-                audioSet.metadata[finalTasks[t]],
-                audioSet.classes[finalTasks[t]],
-            )
-            fIDm.write("\n")
-        print("    - Metadata verification.")
-        fIDm.write(
-            "#-\n"
-            + "Metadata check (for melody,key,chord,drum and structure)"
-            + "\n#-\n"
-        )
+            exportMetadataProperties(fIDm, finalTasks[t], audioSet.metadata[finalTasks[t]], audioSet.classes[finalTasks[t]]);
+            fIDm.write('\n')
+        print('    - Metadata verification.');
+        fIDm.write('#-\n' + 'Metadata check (for melody,key,chord,drum and structure)' + '\n#-\n');
         for t in range(len(finalTasks)):
             # Here we will check that the annotations do not exceed the file duration !
-            if (
-                (finalTasks[t] == "melody")
-                or (finalTasks[t] == "keys")
-                or (finalTasks[t] == "chord")
-                or (finalTasks[t] == "drum")
-                or (finalTasks[t] == "structure")
-            ):
+            if (finalTasks[t] == 'melody') or (finalTasks[t] == 'keys') or (finalTasks[t] == 'chord') or (finalTasks[t] == 'drum') or (finalTasks[t] == 'structure'):
                 curMeta = audioSet.metadata[finalTasks[t]]
-                fIDm.write("Task " + finalTasks[t] + "\n")
+                fIDm.write('Task ' + finalTasks[t] + '\n') 
                 for f in range(len(audioSet.files)):
-                    if (
-                        (finalTasks[t] == "structure")
-                        or (finalTasks[t] == "keys")
-                        or (finalTasks[t] == "chord")
-                        or (finalTasks[t] == "harmony")
-                    ):
-                        if (
-                            (not curMeta[f])
-                            or (not curMeta[f][0])
-                            or (len(curMeta[f][0]["timeEnd"]) == 0)
-                        ):
-                            fIDm.write(
-                                "Error : File "
-                                + audioSet.files[f]
-                                + " - Does not have metadata !\n"
-                            )
-                        elif np.max(curMeta[f][0]["timeEnd"]) > setDurations[f]:
-                            fIDm.write("Error : File " + audioSet.files[f] + "\n")
-                            fIDm.write("Duration \t : " + str(setDurations[f]) + "\n")
-                            fIDm.write(
-                                "Max annote \t : "
-                                + str(np.max(curMeta[f][0]["timeEnd"]))
-                                + "\n"
-                            )
+                    if (finalTasks[t] == 'structure') or (finalTasks[t] == 'keys') or (finalTasks[t] == 'chord') or (finalTasks[t] == 'harmony'):
+                        if (not curMeta[f]) or (not curMeta[f][0]) or (len(curMeta[f][0]["timeEnd"]) == 0):
+                            fIDm.write('Error : File ' + audioSet.files[f] + ' - Does not have metadata !\n')
+                        elif (np.max(curMeta[f][0]["timeEnd"]) > setDurations[f]):
+                            fIDm.write('Error : File ' + audioSet.files[f] + '\n')
+                            fIDm.write('Duration \t : ' + str(setDurations[f]) + '\n')
+                            fIDm.write('Max annote \t : ' + str(np.max(curMeta[f][0]["timeEnd"])) + '\n')
                     else:
-                        if (
-                            (not curMeta[f])
-                            or (not curMeta[f][0])
-                            or (len(curMeta[f][0]["time"]) == 0)
-                        ):
-                            fIDm.write(
-                                "Error : File "
-                                + audioSet.files[f]
-                                + " - Does not have metadata !\n"
-                            )
-                        elif np.max(curMeta[f][0]["time"]) > setDurations[f]:
-                            fIDm.write("Error : File " + audioSet.files[f] + "\n")
-                            fIDm.write("Duration \t : " + str(setDurations[f]) + "\n")
-                            fIDm.write(
-                                "Max annote \t : "
-                                + str(np.max(curMeta[f][0]["time"]))
-                                + "\n"
-                            )
-        fIDm.write("\n")
+                        if (not curMeta[f]) or (not curMeta[f][0]) or (len(curMeta[f][0]["time"]) == 0):
+                            fIDm.write('Error : File ' + audioSet.files[f] + ' - Does not have metadata !\n')
+                        elif (np.max(curMeta[f][0]["time"]) > setDurations[f]):
+                            fIDm.write('Error : File ' + audioSet.files[f] + '\n')
+                            fIDm.write('Duration \t : ' + str(setDurations[f]) + '\n')
+                            fIDm.write('Max annote \t : ' + str(np.max(curMeta[f][0]["time"])) + '\n')
+        fIDm.write('\n')
     fIDm.close()
     fIDt.close()

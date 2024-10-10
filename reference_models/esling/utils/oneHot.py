@@ -10,7 +10,6 @@ from numpy import zeros, where, ndarray
 from torch import Tensor
 from torch.autograd import Variable
 
-
 def oneHot(labels, dim):
     if issubclass(type(labels), ndarray):
         n = labels.shape[0]
@@ -28,13 +27,12 @@ def oneHot(labels, dim):
         for i in range(n):
             t[i, int(labels[i])] = 1
     else:
-        raise Exception("type %s is not recognized by oneHot function" % type(labels))
+        raise Exception('type %s is not recognized by oneHot function'%type(labels))        
     return t
-
 
 def fromOneHot(vector):
     if issubclass(type(vector), ndarray):
-        ids = where(vector == 1)
+        ids = where(vector==1)
         return ids[1]
     if issubclass(type(vector), Tensor):
         return vector.eq(1).nonzero()[:, 1]

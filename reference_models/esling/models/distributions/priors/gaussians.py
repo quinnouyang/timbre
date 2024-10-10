@@ -2,11 +2,10 @@
 
 import torch.distributions as dist
 from numpy import zeros, ones, ndarray
-from torch import from_numpy, Tensor, index_select
+from torch import from_numpy, Tensor, index_select, LongTensor, cat
 from torch.autograd import Variable
-from xavierVAE.utils.oneHot import fromOneHot
+from utils.onehot import fromOneHot
 import random
-
 
 class Prior(object):
     def __init__(self, *args, **kwargs):
@@ -14,25 +13,22 @@ class Prior(object):
         self.dim = 0
         self.dist = dist.Distribution
         self.params = ()
-
+        
     def __call__(self, cuda=False, *args, **kwargs):
         draw = self.dist.sample(*self.params)
         if cuda:
             draw = draw.cuda()
         return draw
-
-    def get_params(self, device="cpu", *args, **kwargs):
-        params = [p.to(device) for p in self.params]
+    
+    def get_params(self, device='cpu', *args, **kwargs):
+        params = [ p.to(device) for p in self.params ]
         return tuple(params)
-
 
 class IsotropicGaussian(Prior):
     def __init__(self, dim, *args, **kwargs):
         super(IsotropicGaussian, self).__init__()
-        self.params = (
-            from_numpy(zeros((1, dim), "float32")),
-            from_numpy(ones((1, dim), "float32")),
-        )
+        self.params = (from_numpy(zeros((1, dim), 'float32')),
+                       from_numpy(ones((1, dim), 'float32')))
         self.params[0].requires_grad_(False)
         self.params[1].requires_grad_(False)
         self.dist = dist.Normal
@@ -40,16 +36,15 @@ class IsotropicGaussian(Prior):
 
 class DiagonalGaussian(Prior):
     def __init__(self, params):
-        assert len(params) == 2
+        assert len(params)==2
         self.dim = params[0].size(1)
         self.dist = dist.Normal
         self.params = params
-
-
+        
+        
 class MultiGaussian(Prior):
     def __init__(self, params, dist=dist.Normal):
-        self.dim = params[0].size(1)
-        self.dist = dist
+        self.dim = params[0].size(1); self.dist = dist
         self.params = []
         for i in range(len(params)):
             p = params[i]
@@ -58,22 +53,20 @@ class MultiGaussian(Prior):
             if issubclass(type(p), Tensor):
                 p = Variable(p)
             self.params.append(p)
-        self.params = tuple(
-            self.params
-        )  # Warning! Here params are Gaussian Parameters for each class
-
+        self.params = tuple(self.params) # Warning! Here params are Gaussian Parameters for each class
+        
     def remove_undeterminate(self, y, undeterminate_id=-1):
         for i in range(y.shape[0]):
             if y.data[i, -1] != 0:
-                random_cat = random.randrange(0, y.shape[1] - 1)
+                random_cat = random.randrange(0, y.shape[1]-1)
                 y[i, random_cat] = 1
         y = y[:, :-1]
         return y
-
+    
     def __call__(self, y=[], cuda=False, *args, **kwargs):
-        with_undeterminate = kwargs.get("with_undeterminate", False)
+        with_undeterminate = kwargs.get('with_undeterminate', False)
         if with_undeterminate:
-            undeterminate_id = kwargs.get("undeterminate_id", -1)
+            undeterminate_id = kwargs.get('undeterminate_id', -1)
             y = self.remove_undeterminate(y, undeterminate_id)
         y = fromOneHot(y)
         if y.is_cuda:
@@ -91,7 +84,8 @@ class MultiGaussian(Prior):
             if cuda:
                 z = z.cuda()
         return z
-
+    
+    
     def get_params(self, y=[], cuda=False, *args, **kwargs):
         params = []
         y = fromOneHot(y)
@@ -102,6 +96,7 @@ class MultiGaussian(Prior):
                 param = self.params[i].cuda()
             else:
                 param = self.params[i]
-            p = index_select(param, 0, y)
+            p = index_select(param, 0, y) 
             params.append(p)
         return tuple(params)
+        

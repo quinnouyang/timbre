@@ -6,35 +6,35 @@ Created on Mon Aug  6 23:27:11 2018
 @author: chemla
 """
 import torch.distributions as dist
-from numpy import ndarray
-from torch import from_numpy, index_select, zeros
-from xavierVAE.utils.oneHot import fromOneHot
+from numpy import ones, ndarray
+from torch import from_numpy, Tensor, index_select, LongTensor, cat, zeros, ones
+from torch.autograd import Variable
+from utils.onehot import fromOneHot
 import random
 import pdb
 
 
 class Prior(object):
     def __init__(self, *args, **kwargs):
-        #        super(Prior, self).__init__()
+#        super(Prior, self).__init__()
         self.dim = 0
         self.dist = dist.Distribution
         self.params = ()
-
+        
     def __call__(self, cuda=False, *args, **kwargs):
         draw = self.dist.sample(*self.params)
         if cuda:
             draw = draw.cuda()
         return draw
-
-    def get_params(self, device="cpu", *args, **kwargs):
-        params = [p.to(device) for p in self.params]
+    
+    def get_params(self, device='cpu', *args, **kwargs):
+        params = [ p.to(device) for p in self.params ]
         return tuple(params)
 
 
 class ClassPrior(Prior):
     def __init__(self, params, dist):
-        self.dim = params[0].size(1)
-        self.dist = dist
+        self.dim = params[0].size(1); self.dist = dist
         self.params = []
         for i in range(len(params)):
             p = params[i]
@@ -42,27 +42,23 @@ class ClassPrior(Prior):
                 p = from_numpy(p)
             p.requires_grad_(False)
             self.params.append(p)
-        self.params = tuple(
-            self.params
-        )  # Warning! Here params are Gaussian Parameters for each class
-
+        self.params = tuple(self.params) # Warning! Here params are Gaussian Parameters for each class
+        
     def remove_undeterminate(self, y, undeterminate_id=-1):
         for i in range(y.shape[0]):
             if y.data[i, -1] != 0:
-                random_cat = random.randrange(0, y.shape[1] - 1)
+                random_cat = random.randrange(0, y.shape[1]-1)
                 y[i, random_cat] = 1
         y = y[:, :-1]
         return y
-
+    
     def __call__(self, y=[], cuda=False, *args, **kwargs):
-        with_undeterminate = kwargs.get("with_undeterminate", False)
+        with_undeterminate = kwargs.get('with_undeterminate', False)
         if with_undeterminate:
-            undeterminate_id = kwargs.get("undeterminate_id", -1)
+            undeterminate_id = kwargs.get('undeterminate_id', -1)
             y = self.remove_undeterminate(y, undeterminate_id)
         pdb.set_trace()
-        y = fromOneHot(
-            y,
-        )
+        y = fromOneHot(y, )
         z = zeros((y.size(0), self.dim), requires_grad=True, device=y.device)
         for i in range(y.size(0)):
             param = []
@@ -72,7 +68,7 @@ class ClassPrior(Prior):
             param = tuple(param)
             z[i, :] = self.dist(*param)
         return z
-
+    
     def get_params(self, y=[], cuda=False, *args, **kwargs):
         params = []
         y = fromOneHot(y)
@@ -83,6 +79,7 @@ class ClassPrior(Prior):
                 param = self.params[i].cuda()
             else:
                 param = self.params[i]
-            p = index_select(param, 0, y)
+            p = index_select(param, 0, y) 
             params.append(p)
         return tuple(params)
+        
