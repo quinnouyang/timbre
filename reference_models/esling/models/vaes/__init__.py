@@ -1,6 +1,5 @@
-
 # -*-coding:utf-8 -*-
- 
+
 """
     The ``vaes`` module
     ========================
@@ -31,15 +30,14 @@
     * Axel Chemla--Romeu-Santos (chemla@ircam.fr)
  
 """
- 
+
 # info
 __version__ = "0.1.0"
-__author__  = "chemla@ircam.fr"
-__date__    = ""
+__author__ = "chemla@ircam.fr"
+__date__ = ""
 
 # import sub modules
 from .vae_abstractVAE import AbstractVAE
 from .vae_vanillaVAE import VanillaVAE
 from .vae_vanillaDLGM import VanillaDLGM
 from .vae_conditionalVAE import ConditionalVAE
-

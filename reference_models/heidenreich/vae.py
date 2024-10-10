@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.distributions.multivariate_normal import MultivariateNormal
-from quinnVAE.heidenreich.dataclass import VAEOutput
+from reference_models.heidenreich.dataclass import VAEOutput
 
 
 class VAE(nn.Module):

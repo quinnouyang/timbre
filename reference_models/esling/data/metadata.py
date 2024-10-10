@@ -22,18 +22,20 @@ import numpy as np
 # A list of pre-defined callbacks (mostly for audio tasks)
 ###################################
 
+
 def importRawNumber(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     return float(metadata), None
 
+
 def importSeries(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     curID = 0
-    result = {};
+    result = {}
     while curID <= len(metadata):
-        next_space = metadata.sub(curID+1).find("\n")
+        next_space = metadata.sub(curID + 1).find("\n")
         line = metadata.sub(curID, curID + next_space - 1)
         # map(int, re.findall(r'\d+', line))
         findVals = re.search("^(.+)%s+(.+)$", line)
@@ -47,13 +49,14 @@ def importSeries(metadata, classes, options):
         finalTensor[i * 2] = elt[1]
     return finalTensor, None
 
-def importKey(metadata, classes, options):    
-    if (metadata is None):
+
+def importKey(metadata, classes, options):
+    if metadata is None:
         return None
     values = re.search("^([a-gA-G][%#b]?):([^%:]+):*(.+)$", metadata)
     key, color, extensions = values.group(1), values.group(2), values.group(3)
     if key:
-        if (classes[metadata] is None):
+        if classes[metadata] is None:
             classes["_length"] = classes["_length"] + 1
             classes[metadata] = classes["_length"]
             return classes_, classes
@@ -62,182 +65,198 @@ def importKey(metadata, classes, options):
     else:
         return None
 
+
 def importTrackList(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     finalVals = [None] * len(options["files"])
     finalID = 0
-    for strFile in re.findall('([^,]+)', metadata):
-        foundID = 0;
+    for strFile in re.findall("([^,]+)", metadata):
+        foundID = 0
         # First look for the file
         for f in range(len(options["files"])):
-            if (options["files"][f] == options["prefix"] + '/' + strFile):
-                foundID = f; 
-                break;
-        finalVals[finalID] = foundID;
-        finalID = finalID + 1;
+            if options["files"][f] == options["prefix"] + "/" + strFile:
+                foundID = f
+                break
+        finalVals[finalID] = foundID
+        finalID = finalID + 1
     finalVals = finalVals[:finalID]
-    return finalVals, classes;
+    return finalVals, classes
+
 
 def importLabelPairsList(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     finalLabels = []
     finalVals = []
     finalID = 0
     labelFlag = 1
-    for strFile in re.findall('([^,]+)', metadata):
-        if (labelFlag == 1):
-            finalLabels[finalID] = strFile;
+    for strFile in re.findall("([^,]+)", metadata):
+        if labelFlag == 1:
+            finalLabels[finalID] = strFile
             if not classes[strFile]:
                 classes["_length"] = classes["_length"] + 1
                 classes[strFile] = classes["_length"]
-            finalLabels[finalID] = classes[strFile];
+            finalLabels[finalID] = classes[strFile]
         else:
-            finalVals[finalID] = float(strFile);
-            finalID = finalID + 1;
-        labelFlag = 1 - labelFlag;
-    return {'tags':finalLabels, 'values':finalVals}, classes;
+            finalVals[finalID] = float(strFile)
+            finalID = finalID + 1
+        labelFlag = 1 - labelFlag
+    return {"tags": finalLabels, "values": finalVals}, classes
+
 
 def importNumberList(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     finalVals = []
     finalID = 0
-    for strFile in re.findall('([^,]+)', metadata):
+    for strFile in re.findall("([^,]+)", metadata):
         finalVals[finalID] = float(strFile)
         finalID = finalID + 1
     return finalVals, classes
 
+
 def importTimedLabelsFile(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     finalVals = []
     finalID = 0
-    for strFile in re.findall('([^,]+)', metadata):
-        curVals, curLabels, curID = [], [], 0;
-        fID = open(options["prefix"] + '/' + strFile, 'r');
-        if (fID):
+    for strFile in re.findall("([^,]+)", metadata):
+        curVals, curLabels, curID = [], [], 0
+        fID = open(options["prefix"] + "/" + strFile, "r")
+        if fID:
             for metaLines in fID:
-                vals = metaLines.split('\t') # re.search('^(.+)\t(.+)$',
-                time, val = vals[0], vals[1] #vals.group(1), vals.group(2)
+                vals = metaLines.split("\t")  # re.search('^(.+)\t(.+)$',
+                time, val = vals[0], vals[1]  # vals.group(1), vals.group(2)
                 curVals.append(float(time))
-                if (not classes.get(val)):
+                if not classes.get(val):
                     classes["_length"] = classes["_length"] + 1
                     classes[val] = classes["_length"]
                     idx = classes["_length"]
                 else:
                     idx = classes[val]
                 curLabels.append(idx)
-                curID = curID + 1;
-            fID.close();
-            finalVals.append({});
-            finalVals[finalID]["time"] = np.array(curVals);
-            finalVals[finalID]["labels"] = curLabels;
-            finalID = finalID + 1;
-    return finalVals, classes;
+                curID = curID + 1
+            fID.close()
+            finalVals.append({})
+            finalVals[finalID]["time"] = np.array(curVals)
+            finalVals[finalID]["labels"] = curLabels
+            finalID = finalID + 1
+    return finalVals, classes
+
 
 def importTimedNumbersFile(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     finalVals = []
     finalID = 0
-    for strFile in re.findall('([^,]+)', metadata):
-        curVals, curLabels, curID = [], [], 0;
-        fID = open(options["prefix"] + '/' + strFile, 'r');
-        if (fID):
+    for strFile in re.findall("([^,]+)", metadata):
+        curVals, curLabels, curID = [], [], 0
+        fID = open(options["prefix"] + "/" + strFile, "r")
+        if fID:
             for metaLines in fID:
-                vals = metaLines.split('\t') #re.search('^(.+)\t(.+)$', metaLines)
-                time, val = vals[0], vals[1] #vals.group(1), vals.group(2)
+                vals = metaLines.split("\t")  # re.search('^(.+)\t(.+)$', metaLines)
+                time, val = vals[0], vals[1]  # vals.group(1), vals.group(2)
                 curVals.append(float(time))
                 curLabels.append(float(val))
-                curID = curID + 1;
-            fID.close();
-            finalVals.append({});
-            finalVals[finalID]["time"] = np.array(curVals);
-            finalVals[finalID]["labels"] = np.array(curLabels);
-            finalID = finalID + 1;
-    return finalVals, classes;
+                curID = curID + 1
+            fID.close()
+            finalVals.append({})
+            finalVals[finalID]["time"] = np.array(curVals)
+            finalVals[finalID]["labels"] = np.array(curLabels)
+            finalID = finalID + 1
+    return finalVals, classes
+
 
 def importTimedSegmentFile(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     finalVals = []
     finalID = 0
-    for strFile in re.findall('([^,]+)', metadata):
-        curValsS, curValsE, curLabels, curID = [], [], [], 0;
+    for strFile in re.findall("([^,]+)", metadata):
+        curValsS, curValsE, curLabels, curID = [], [], [], 0
         try:
-            fID = open(options["prefix"] + '/' + strFile, 'r');
+            fID = open(options["prefix"] + "/" + strFile, "r")
         except:
             continue
-        if (fID):
+        if fID:
             for metaLines in fID:
                 metaLines = metaLines[:-1]
-                vals = metaLines.split(',') #re.search('^([^,]+),([^,]+),(.+)$', metaLines)
-                if (len(vals) > 2):
-                    timeS, timeE, val = vals[0], vals[1], vals[2] #vals.group(1), vals.group(2), vals.group(3)
-                    curValsS.append(float(timeS));
-                    curValsE.append(float(timeE));
-                    curLabels.append(val);
-                    curID = curID + 1;
-            fID.close();
-            finalVals.append({});
-            finalVals[finalID]["timeStart"] = np.array(curValsS);
-            finalVals[finalID]["timeEnd"] = np.array(curValsE);
-            finalVals[finalID]["labels"] = curLabels;
-            finalID = finalID + 1;
-    return finalVals, classes;
+                vals = metaLines.split(
+                    ","
+                )  # re.search('^([^,]+),([^,]+),(.+)$', metaLines)
+                if len(vals) > 2:
+                    timeS, timeE, val = (
+                        vals[0],
+                        vals[1],
+                        vals[2],
+                    )  # vals.group(1), vals.group(2), vals.group(3)
+                    curValsS.append(float(timeS))
+                    curValsE.append(float(timeE))
+                    curLabels.append(val)
+                    curID = curID + 1
+            fID.close()
+            finalVals.append({})
+            finalVals[finalID]["timeStart"] = np.array(curValsS)
+            finalVals[finalID]["timeEnd"] = np.array(curValsE)
+            finalVals[finalID]["labels"] = curLabels
+            finalID = finalID + 1
+    return finalVals, classes
+
 
 def importTimedSeriesFile(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
-    finalVals = [];
-    finalID = 0;
-    for strFile in re.findall('([^,]+)', metadata):
-        curVals, curID = [], 0;
-        fID = open(options["prefix"] + '/' + strFile, 'r');
-        if (fID):
+    finalVals = []
+    finalID = 0
+    for strFile in re.findall("([^,]+)", metadata):
+        curVals, curID = [], 0
+        fID = open(options["prefix"] + "/" + strFile, "r")
+        if fID:
             for metaLines in fID:
                 metaLines = metaLines[:-1]
-                vals = metaLines.split(',');#re.search('^([^,]+),([^,]+)', metaLines);
+                vals = metaLines.split(",")
+                # re.search('^([^,]+),([^,]+)', metaLines);
                 timeE = vals[0]
-                if (len(timeE) > 0):
-                    curVals.append(float(timeE)); 
-                    curID = curID + 1;         
-            fID.close();
-            finalVals.append(np.array(curVals));
-            finalID = finalID + 1;
-    return finalVals, classes;
+                if len(timeE) > 0:
+                    curVals.append(float(timeE))
+                    curID = curID + 1
+            fID.close()
+            finalVals.append(np.array(curVals))
+            finalID = finalID + 1
+    return finalVals, classes
+
 
 def importStringFile(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
-    finalVals = [];
-    finalID = 0;
-    for strFile in re.findall('([^,]+)', metadata):
-        curVals, curID = [], 0;
-        fID = open(options["prefix"] + '/' + strFile, 'r');
-        if (fID):
+    finalVals = []
+    finalID = 0
+    for strFile in re.findall("([^,]+)", metadata):
+        curVals, curID = [], 0
+        fID = open(options["prefix"] + "/" + strFile, "r")
+        if fID:
             for metaLines in fID.lines():
-                val = metaLines;
-                if (not classes[val]): 
+                val = metaLines
+                if not classes[val]:
                     classes["_length"] = classes["_length"] + 1
                     classes[val] = classes["_length"]
                     idx = classes["_length"]
                 else:
                     idx = classes[val]
-                curVals[curID] = idx; 
-                curID = curID + 1;
-            fID.close();
-            finalVals[finalID] = np.array(curVals);
-            finalID = finalID + 1;
-    return finalVals, classes;
+                curVals[curID] = idx
+                curID = curID + 1
+            fID.close()
+            finalVals[finalID] = np.array(curVals)
+            finalID = finalID + 1
+    return finalVals, classes
+
 
 def importRawLabel(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
-    idx = 0;
-    if (classes.get(metadata) is None):
+    idx = 0
+    if classes.get(metadata) is None:
         idx = classes["_length"]
         classes[metadata] = classes["_length"]
         classes["_length"] = classes["_length"] + 1
@@ -245,21 +264,23 @@ def importRawLabel(metadata, classes, options):
         idx = classes[metadata]
     return idx, classes
 
+
 def importRawMultiLabel(metadata, classes, options):
-    if (metadata is None):
+    if metadata is None:
         return None
     labels = []
-    for label in re.findall('([^,]+)', metadata):
+    for label in re.findall("([^,]+)", metadata):
         labels.append(label)
-    idxs = [];
-    for label in (labels):
-        if (not classes.get(label)):
+    idxs = []
+    for label in labels:
+        if not classes.get(label):
             classes[label] = classes["_length"]
             idxs.append(classes["_length"])
-            classes["_length"] = classes["_length"] + 1;
+            classes["_length"] = classes["_length"] + 1
         else:
             idxs.append(classes[label])
     return idxs, classes
+
 
 """
 
@@ -473,32 +494,32 @@ end
 """
 
 metadataCallbacks = {
-  'artist':importRawLabel, 
-  'beat':importTimedSeriesFile, 
-  'downbeat':importTimedSeriesFile, 
-  'emotion':importRawLabel, 
-  'cover':importTrackList, 
-  'genre':importRawLabel, 
-  'instrument':importRawLabel,
-  'key':importRawLabel, 
-  'keys':importTimedSegmentFile, 
-  'melody':importTimedNumbersFile, 
-  'meter':importRawLabel, 
-  'tempo':importRawNumber, 
-  'tag':importRawMultiLabel,
-  'multilabel':importRawMultiLabel, 
-  'structure':importTimedSegmentFile,
-  'harmony':importTimedSegmentFile,
-#  'similarity':importSimilarity,
-  'similarities':importTimedSegmentFile,
-  'drum':importTimedLabelsFile,
-  'chord':importTimedSegmentFile,
-  'onset':importTimedSeriesFile,
-  'year':importRawNumber,
-  'gps':importNumberList,
-  'location':importRawLabel,
-  'tags':importLabelPairsList,
-  'terms':importLabelPairsList,
-  'review':importStringFile,
-  'default':importRawLabel
-};
+    "artist": importRawLabel,
+    "beat": importTimedSeriesFile,
+    "downbeat": importTimedSeriesFile,
+    "emotion": importRawLabel,
+    "cover": importTrackList,
+    "genre": importRawLabel,
+    "instrument": importRawLabel,
+    "key": importRawLabel,
+    "keys": importTimedSegmentFile,
+    "melody": importTimedNumbersFile,
+    "meter": importRawLabel,
+    "tempo": importRawNumber,
+    "tag": importRawMultiLabel,
+    "multilabel": importRawMultiLabel,
+    "structure": importTimedSegmentFile,
+    "harmony": importTimedSegmentFile,
+    #  'similarity':importSimilarity,
+    "similarities": importTimedSegmentFile,
+    "drum": importTimedLabelsFile,
+    "chord": importTimedSegmentFile,
+    "onset": importTimedSeriesFile,
+    "year": importRawNumber,
+    "gps": importNumberList,
+    "location": importRawLabel,
+    "tags": importLabelPairsList,
+    "terms": importLabelPairsList,
+    "review": importStringFile,
+    "default": importRawLabel,
+}

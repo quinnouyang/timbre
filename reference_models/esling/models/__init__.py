@@ -1,5 +1,5 @@
 # -*-coding:utf-8 -*-
- 
+
 """
     The ``models`` module
     ========================
@@ -30,15 +30,15 @@
     * Axel Chemla--Romeu-Santos (chemla@ircam.fr)
  
 """
- 
+
 # info
 __version__ = "0.1.0"
-__author__  = "chemla@ircam.fr"
-__date__    = ""
-__all__     = ["criterions", "distributions", "modules", "vaes"]
+__author__ = "chemla@ircam.fr"
+__date__ = ""
+__all__ = ["criterions", "distributions", "modules", "vaes"]
 
 # import sub modules
-#from . import criterions
-#from . import distributions
-#from . import modules
-#from . import vaes
+# from . import criterions
+# from . import distributions
+# from . import modules
+# from . import vaes

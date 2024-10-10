@@ -3,4 +3,3 @@
 
 from .Spectral import Spectral
 from .AutoRegressive import AutoRegressive
-

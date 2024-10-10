@@ -1,5 +1,5 @@
 # -*-coding:utf-8 -*-
- 
+
 """
     The ``datasets`` module
     ========================
@@ -33,12 +33,12 @@
     * Philippe Esling       (esling@ircam.fr)
  
 """
- 
+
 # info
 __version__ = "1.0"
-__author__  = "esling@ircam.fr, chemla@ircam.fr"
-__date__    = ""
-__all__     = ["generic", "audio", "dataset", "metadata"]
+__author__ = "esling@ircam.fr, chemla@ircam.fr"
+__date__ = ""
+__all__ = ["generic", "audio", "dataset", "metadata"]
 
 # import sub modules
 from . import audio

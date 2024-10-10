@@ -1,5 +1,5 @@
 # -*-coding:utf-8 -*-
- 
+
 """
     The ``utils`` module
     ========================
@@ -21,12 +21,12 @@
     * Philippe Esling       (esling@ircam.fr)
  
 """
- 
+
 # info
 __version__ = "1.0"
-__author__  = "esling@ircam.fr"
-__date__    = ""
-__all__     = []
- 
+__author__ = "esling@ircam.fr"
+__date__ = ""
+__all__ = []
+
 # import sub modules
 from .onehot import oneHot, fromOneHot
