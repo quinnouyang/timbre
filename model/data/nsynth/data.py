@@ -91,7 +91,7 @@ class NSynthDataset(Dataset):
         with suppress(KeyError):  # Remove the "qualities_str" key, if not already
             annotation.pop("qualities_str")
 
-        return (
+        s = (
             stft_fn(
                 from_numpy(
                     read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
@@ -100,6 +100,8 @@ class NSynthDataset(Dataset):
             .flatten()
             .to(float32)
         )
+
+        return s / s.max()
 
         return NSynthExample(
             **annotation,
