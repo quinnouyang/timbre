@@ -15,7 +15,7 @@ N_FFT = 2048
 HOP_LEN = N_FFT // 4
 
 
-stft_fn = tat.Spectrogram(N_FFT, hop_length=HOP_LEN)
+stft_fn = tat.Spectrogram(N_FFT, hop_length=HOP_LEN, normalized=True)
 gla_fn = tat.GriffinLim(N_FFT, hop_length=HOP_LEN)
 
 
