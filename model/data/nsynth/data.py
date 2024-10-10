@@ -1,4 +1,5 @@
 import json
+import torchaudio.transforms as tat
 
 from os import path, listdir
 from argparse import ArgumentParser
@@ -6,8 +7,16 @@ from pathlib import Path
 from typing import NamedTuple, Literal, Any
 from torch import Tensor, from_numpy
 from torch.utils.data import Dataset
-from scipy.io.wavfile import read
 from contextlib import suppress
+from model.utils import read
+
+SR = 16000
+N_FFT = 2048
+HOP_LEN = N_FFT // 4
+
+
+stft_fn = tat.Spectrogram(N_FFT, hop_length=HOP_LEN)
+gla_fn = tat.GriffinLim(N_FFT, hop_length=HOP_LEN)
 
 
 NSynthExample = NamedTuple(
@@ -64,7 +73,7 @@ class NSynthDataset(Dataset):
     def __len__(self):
         return len(self.keys)
 
-    def __getitem__(self, i: int) -> NSynthExample:
+    def __getitem__(self, i: int) -> Tensor:
         """Load the `i`-th example
 
         Parameters
@@ -74,12 +83,19 @@ class NSynthDataset(Dataset):
 
         Returns
         -------
-        NSynth example features : `NSynthExample`
-            See the [NSynth example features](https://magenta.tensorflow.org/datasets/nsynth#example-features)
+        Flattened magnitude spectrogram of the example
+        # NSynth example features : `NSynthExample`
+        #     See the [NSynth example features](https://magenta.tensorflow.org/datasets/nsynth#example-features)
         """
         annotation: dict = self.annotations[self.keys[i]]
         with suppress(KeyError):  # Remove the "qualities_str" key, if not already
             annotation.pop("qualities_str")
+
+        return stft_fn(
+            from_numpy(
+                read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
+            )
+        ).flatten()
 
         return NSynthExample(
             **annotation,
