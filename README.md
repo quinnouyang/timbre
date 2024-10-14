@@ -1,6 +1,4 @@
-# Text-to-timbre
-
-> Title is ambititious; we are currently working on timbre-to-timbre modeling
+# timbre
 
 Timbre remains an “unsolved problem” in that there’s practically no largely agreeable standard for how to describe or represent it. We tend to either use spectrograms or natural language, both which suck. Historically, we have subjectively organized timbres using perceptual surveys. These are at-best intuitive, but are discrete and limited to the subset of sounds they include. Now, we bias ourselves in wanting to “solve this problem” using machine learning and enough data.
 
