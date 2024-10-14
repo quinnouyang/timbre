@@ -115,7 +115,7 @@ class VAE(nn.Module):
 
         # compute loss terms
         loss_recon = F.binary_cross_entropy(recon_x, x, reduction="none").sum(-1).mean()
-        std_normal = torch.distributions.MultivariateNormal(
+        std_normal = MultivariateNormal(
             torch.zeros_like(z, device=z.device),
             scale_tril=torch.eye(z.shape[-1], device=z.device)
             .unsqueeze(0)
