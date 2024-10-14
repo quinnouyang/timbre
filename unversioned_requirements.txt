@@ -1,8 +1,9 @@
 black
 ipykernel
 matplotlib
-torch
+scipy
 tensorboard
+torch
 torchaudio
 torchvision
 tqdm
