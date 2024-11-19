@@ -5,6 +5,7 @@ import torch
 from matplotlib.colors import LogNorm
 from pathlib import Path
 from torch.nn.utils import clip_grad_norm_
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
@@ -14,7 +15,7 @@ from .vae import VAE
 
 
 def train(
-    model: VAE,
+    model: VAE | DDP,
     dataloader: DataLoader,
     optimizer: Optimizer,
     prev_updates: int,
@@ -80,7 +81,7 @@ def train(
 
 
 def test(
-    model: VAE,
+    model: VAE | DDP,
     dataloader: DataLoader,
     cur_step: int,
     device: torch.device,
@@ -145,13 +146,15 @@ def test(
 
 
 def plot(
-    model: VAE,
+    model: VAE | DDP,
     train_loader: DataLoader,
     device: torch.device,
     latent_dim: int,
     runs_dir: Path,
     datetime_now: str,
 ) -> None:
+    plot_dir = runs_dir / datetime_now
+
     z = torch.randn(64, latent_dim).to(device)
     samples = model.decode(z)
     # samples = torch.sigmoid(samples)
@@ -169,7 +172,7 @@ def plot(
             ax[i, j].axis("off")
 
     # plt.show()
-    plt.savefig(runs_dir / f"{datetime_now}_vae_mnist.webp")
+    plt.savefig(plot_dir / "vae_mnist.webp")
 
     # encode and plot the z values for the train set
     model.eval()
@@ -188,14 +191,14 @@ def plot(
     plt.scatter(z_all[:, 0], z_all[:, 1], c=y_all, cmap="tab10")
     plt.colorbar()
     # plt.show()
-    plt.savefig(runs_dir / f"{datetime_now}_vae_mnist_2d_scatter.webp")
+    plt.savefig(plot_dir / "vae_mnist_2d_scatter.webp")
 
     # plot as 2d histogram, log scale
     plt.figure(figsize=(10, 10))
     plt.hist2d(z_all[:, 0], z_all[:, 1], bins=128, cmap="Blues", norm=LogNorm())
     plt.colorbar()
     # plt.show()
-    plt.savefig(runs_dir / f"{datetime_now}_vae_mnist_2d_hist.webp")
+    plt.savefig(plot_dir / "vae_mnist_2d_hist.webp")
 
     # plot 1d histograms
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
@@ -204,7 +207,7 @@ def plot(
     ax[1].hist(z_all[:, 1], bins=100, color="b", alpha=0.7)
     ax[1].set_title("z2")
     # plt.show()
-    plt.savefig(runs_dir / f"{datetime_now}_vae_mnist_1d_hist.webp")
+    plt.savefig(plot_dir / "vae_mnist_1d_hist.webp")
 
     n = 15
     z1 = torch.linspace(-0, 1, n)
@@ -219,4 +222,4 @@ def plot(
         ax[i].imshow(samples[i].view(28, 28).cpu().detach().numpy(), cmap="gray")
         ax[i].axis("off")
 
-    plt.savefig(runs_dir / f"{datetime_now}_vae_mnist_interp.webp")
+    plt.savefig(plot_dir / "vae_mnist_interp.webp")

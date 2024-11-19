@@ -1,66 +1,82 @@
 import torch
 import torch.distributed as dist
 
-from datetime import datetime
 from torch.distributed.elastic.multiprocessing.errors import record
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.tensorboard.writer import SummaryWriter
-from torchvision import datasets
-from torchvision.transforms import v2
+from torch.optim.adamw import AdamW
+from torch.utils.data import DataLoader
+from torchvision.datasets import MNIST
 
-from reference_models.heidenreich.train import train, test
+from reference_models.heidenreich.single_v2.config import (
+    DATA_DIR,
+    TRANSFORM,
+    BATCH_SIZE,
+    NUM_WORKERS,
+    PIN_MEMORY,
+    INPUT_DIM,
+    HIDDEN_DIM,
+    LATENT_DIM,
+    DEVICE,
+    WEIGHT_DECAY,
+    WRITER,
+    N_EPOCHS,
+    RUNS_DIR,
+    DATETIME_NOW,
+)
+from reference_models.heidenreich.train import train, test, plot
 from reference_models.heidenreich.vae import VAE
 
 
 @record
-def run() -> None:
-    learning_rate = 1e-3
-    weight_decay = 1e-2
-    num_epochs = 50
-    latent_dim = 2
-    hidden_dim = 512
-
-    batch_size = 128
-
-    transform = v2.Compose(
-        [
-            v2.ToImage(),
-            v2.ToDtype(torch.float32, scale=True),
-            v2.Lambda(lambda x: x.view(-1) - 0.5),
-        ]
-    )
-
-    # Download and load the training data
-    train_data = datasets.MNIST(
-        "~/.pytorch/MNIST_data/",
+def main() -> None:
+    print("Loading datasets and dataloaders...")
+    TRAIN_DATA = MNIST(
+        DATA_DIR,
         download=True,
         train=True,
-        transform=transform,
+        transform=TRANSFORM,
     )
-    # Download and load the test data
-    test_data = datasets.MNIST(
-        "~/.pytorch/MNIST_data/",
+    TEST_DATA = MNIST(
+        DATA_DIR,
         download=True,
         train=False,
-        transform=transform,
+        transform=TRANSFORM,
+    )
+    TRAIN_LOADER = DataLoader(
+        TRAIN_DATA,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY,
+    )
+    TEST_LOADER = DataLoader(
+        TEST_DATA,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        num_workers=NUM_WORKERS,
+        pin_memory=PIN_MEMORY,
+    )
+    print(
+        f"Training datapoints: {len(TRAIN_DATA)}\nTesting datapoints: {len(TEST_DATA)}\n"
     )
 
-    # Create data loaders
-    train_loader = torch.utils.data.DataLoader(
-        train_data, batch_size=batch_size, shuffle=True, num_workers=8, pin_memory=True
-    )
-    test_loader = torch.utils.data.DataLoader(
-        test_data, batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True
-    )
+    print("Initiating model, optimizer, and Tensorboard...")
+    MODEL = VAE(INPUT_DIM, HIDDEN_DIM, LATENT_DIM).to(DEVICE)
+    OPT = AdamW(MODEL.parameters(), weight_decay=WEIGHT_DECAY)
 
-    device = torch.device(
-        "cuda"
-        if torch.cuda.is_available()
-        else "mps" if torch.backends.mps.is_available() else "cpu"
-    )
-    model = VAE(input_dim=784, hidden_dim=hidden_dim, latent_dim=latent_dim)
-    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=weight_decay)
-    writer = SummaryWriter(f'runs/mnist/vae_{datetime.now().strftime("%Y%m%d-%H%M%S")}')
+    print("Entering train-test loop...\n")
+    prev_updates = 0
+    for epoch in range(N_EPOCHS):
+        print(f"Epoch {epoch+1}/{N_EPOCHS}")
+        prev_updates = train(
+            MODEL, TRAIN_LOADER, OPT, prev_updates, DEVICE, BATCH_SIZE, WRITER
+        )
+        test(MODEL, TEST_LOADER, prev_updates, DEVICE, LATENT_DIM, WRITER)
+
+    print("\nPlotting...")
+    plot(MODEL, TRAIN_LOADER, DEVICE, LATENT_DIM, RUNS_DIR, DATETIME_NOW)
+
+    print("Done.")
 
     dist.init_process_group("nccl")
     rank = dist.get_rank()
@@ -69,18 +85,18 @@ def run() -> None:
     # create model and move it to GPU with id rank
     device_id = rank % torch.cuda.device_count()
     print(f"Device ID: {device_id}")
-    model = DDP(model.to(device_id), device_ids=[device_id])
+    MODEL = DDP(MODEL.to(device_id), device_ids=[device_id])
 
     prev_updates = 0
-    for epoch in range(num_epochs):
-        print(f"Epoch {epoch+1}/{num_epochs}")
+    for epoch in range(N_EPOCHS):
+        print(f"Epoch {epoch+1}/{N_EPOCHS}")
         prev_updates = train(
-            model, train_loader, optimizer, prev_updates, batch_size, device, writer
+            MODEL, TRAIN_LOADER, OPT, prev_updates, DEVICE, BATCH_SIZE, WRITER
         )
-        test(model, test_loader, prev_updates, latent_dim, device, writer)
+        test(MODEL, TEST_LOADER, prev_updates, DEVICE, LATENT_DIM, WRITER)
 
     dist.destroy_process_group()
 
 
 if __name__ == "__main__":
-    run()
+    main()
