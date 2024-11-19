@@ -7,7 +7,7 @@ from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 
-from reference_models.heidenreich.single_v2.config import (
+from reference_models.heidenreich.multi.config import (
     DATASETS_DIR,
     TRANSFORM,
     BATCH_SIZE,
