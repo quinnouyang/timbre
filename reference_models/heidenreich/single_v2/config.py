@@ -14,9 +14,11 @@ TRANSFORM = Compose(
     ]
 )
 
-ROOT_DIR = Path(__file__).parent
-RUNS_DIR = ROOT_DIR / "runs"
-DATA_DIR = ROOT_DIR / "data"
+CONFIG_DIR = Path(__file__).parent
+MODEL_DIR = CONFIG_DIR.parent
+PROJ_DIR = MODEL_DIR.parent.parent
+RUNS_DIR = CONFIG_DIR / "runs"
+DATA_DIR = MODEL_DIR / "data"
 
 BATCH_SIZE = 128
 LEARN_RATE = 1e-3
@@ -36,8 +38,6 @@ PIN_MEMORY = DEVICE == "cuda"
 DATETIME_NOW = datetime.now().strftime("%Y%m%d-%H%M%S")
 WRITER = SummaryWriter(RUNS_DIR / f"log_{DATETIME_NOW}")
 
-RUNS_DIR.mkdir(parents=True, exist_ok=True)
-
 print(
-    f"SINGLE v2 CONFIGURATION\nDevice: {DEVICE}\nRoot directory: {ROOT_DIR}\nRuns directory: {RUNS_DIR}\nData directory: {DATA_DIR}\n"
+    f"SINGLE v2 CONFIGURATION\nDevice: {DEVICE}\nConfiguration directory: {CONFIG_DIR.relative_to(PROJ_DIR)}\nRuns directory: {RUNS_DIR.relative_to(PROJ_DIR)}\nData directory: {DATA_DIR.relative_to(PROJ_DIR)}"
 )

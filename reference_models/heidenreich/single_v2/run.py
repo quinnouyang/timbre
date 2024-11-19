@@ -16,7 +16,7 @@ from reference_models.heidenreich.single_v2.config import (
     WRITER,
     N_EPOCHS,
 )
-from reference_models.heidenreich.single_v2.train import train, test, plot
+from reference_models.heidenreich.train import train, test, plot
 from reference_models.heidenreich.vae import VAE
 
 
