@@ -2,14 +2,14 @@ import torch
 import torch.distributed as dist
 
 from datetime import datetime
-from vae import VAE
+from torch.distributed.elastic.multiprocessing.errors import record
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard.writer import SummaryWriter
 from torchvision import datasets
 from torchvision.transforms import v2
-from torch.distributed.elastic.multiprocessing.errors import record
 
-from train import train, test
+from .train import train, test
+from .vae import VAE
 
 
 @record

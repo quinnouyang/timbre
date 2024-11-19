@@ -3,7 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from torch.distributions.multivariate_normal import MultivariateNormal
-from dataclass import VAEOutput
+
+from .dataclass import VAEOutput
 
 
 class VAE(nn.Module):
