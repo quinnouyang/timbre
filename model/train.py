@@ -183,7 +183,7 @@ def plot(
     `datetime_now`: `str`
         Datetime to label this run with as a plots directory name
     """
-    plot_dir = runs_dir / datetime_now
+    plot_dir = runs_dir / f"plots_{datetime_now}"
 
     z = torch.randn(64, latent_dim).to(device)
     samples = model.decode(z)
