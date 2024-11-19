@@ -154,6 +154,7 @@ def plot(
     datetime_now: str,
 ) -> None:
     plot_dir = runs_dir / datetime_now
+    plot_dir.mkdir(parents=True, exist_ok=True)
 
     z = torch.randn(64, latent_dim).to(device)
     samples = model.decode(z)
