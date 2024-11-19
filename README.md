@@ -19,4 +19,4 @@ This space enables us to:
 
 We do not know the minimally support Python version, but we are mostly using `>=3.11`. 
 
-Download requirements via `pip install -r malleus_requirements.txt`, although be aware we manually maintain this frozen list.
+Download requirements via `pip install -r unversioned_requirements.txt`, although be aware we manually maintain this frozen list.
