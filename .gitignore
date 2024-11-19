@@ -3,10 +3,10 @@
 __pycache__
 .python-version
 
+# Data
+data/
+
 # Outputs
-**/*.png
-**/*.gif
-*.webp
 runs
 
 # Miscellaneous
@@ -23,6 +23,3 @@ runs
 **/*.out
 **/*.synctex.gz
 !**/out/*.pdf
-
-# Data
-data/
