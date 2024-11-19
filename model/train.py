@@ -24,18 +24,29 @@ def train(
     writer: SummaryWriter | None = None,
 ) -> int:
     """
-    Trains the model on the given data.
+    Parameters
+    ----------
+    `model` : `VAE | DDP`
+        Single or multi/distributed GPU model
+    `dataloader` : `DataLoader`
+    `optimizer` : `Optimizer`
+    `prev_updates`: `int`
+        Number of updates from previous epochs
+    `device`: `torch.device`
+    `batch_size`: `int`
+    `writer`: `SummaryWriter | None = None`
 
-    Args:
-        model (nn.Module): The model to train.
-        dataloader (torch.utils.data.DataLoader): The data loader.
-        loss_fn: The loss function.
-        optimizer: The optimizer.
+    Returns
+    -------
+    New number of updates (includes `prev_updates`)
     """
     model.train()
     n_upd = prev_updates
 
     def try_calculate_grad(loss, output) -> None:
+        """
+        Calculates, logs, and writes gradients every 100 updates
+        """
         if n_upd % 100 != 0:
             return
 
@@ -58,6 +69,9 @@ def train(
             writer.add_scalar("GradNorm/Train", total_norm, global_step)
 
     def update(data: torch.Tensor) -> None:
+        """
+        A single update step
+        """
         optimizer.zero_grad()
         for param in model.parameters():
             param.grad = None
@@ -89,13 +103,16 @@ def test(
     writer: SummaryWriter | None = None,
 ) -> None:
     """
-    Tests the model on the given data.
-
-    Args:
-        model (nn.Module): The model to test.
-        dataloader (torch.utils.data.DataLoader): The data loader.
-        cur_step (int): The current step.
-        writer: The TensorBoard writer.
+    Parameters
+    ----------
+    `model` : `VAE | DDP`
+        Single or multi/distributed GPU model
+    `dataloader` : `DataLoader`
+    `cur_step`: `int`
+        Current update count from previous epochs
+    `device`: `torch.device`
+    `latent_dim`: `int`
+    `writer`: `SummaryWriter | None = None`
     """
     model.eval()
     test_loss = 0
@@ -153,6 +170,19 @@ def plot(
     runs_dir: Path,
     datetime_now: str,
 ) -> None:
+    """
+    Parameters
+    ----------
+    `model` : `VAE | DDP`
+        Single or multi/distributed GPU model
+    `train_loader` : `DataLoader`
+    `device`: `torch.device`
+    `latent_dim`: `int`
+    `runs_dir`: `Path`
+        Path to runs to create a directory to export this run's plots to
+    `datetime_now`: `str`
+        Datetime to label this run with as a plots directory name
+    """
     plot_dir = runs_dir / datetime_now
 
     z = torch.randn(64, latent_dim).to(device)
