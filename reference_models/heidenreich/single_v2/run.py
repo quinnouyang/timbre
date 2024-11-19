@@ -50,6 +50,9 @@ if __name__ == "__main__":
         num_workers=NUM_WORKERS,
         pin_memory=PIN_MEMORY,
     )
+    print(
+        f"Training datapoints: {len(TRAIN_DATA)}\nTesting datapoints: {len(TEST_DATA)}\n"
+    )
 
     print("Initiating model, optimizer, and Tensorboard...")
     MODEL = VAE(INPUT_DIM, HIDDEN_DIM, LATENT_DIM).to(DEVICE)
@@ -64,7 +67,7 @@ if __name__ == "__main__":
         )
         test(MODEL, TEST_LOADER, prev_updates, DEVICE, LATENT_DIM, WRITER)
 
-    print("Plotting...")
+    print("\nPlotting...")
     plot(MODEL, TRAIN_LOADER, DEVICE, LATENT_DIM, RUNS_DIR, DATETIME_NOW)
 
     print("Done.")
