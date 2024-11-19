@@ -1,11 +1,32 @@
-# Based off Heidenreich. See https://gist.github.com/hunter-heidenreich/9512636394a23721452046039dd52d90#file-vae-py
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from dataclasses import dataclass
 from torch.distributions.multivariate_normal import MultivariateNormal
-from model.dataclass import VAEOutput
+
+
+@dataclass
+class VAEOutput:
+    """
+    Dataclass for VAE output.
+
+    Attributes:
+        z_dist (torch.distributions.Distribution): The distribution of the latent variable z.
+        z_sample (torch.Tensor): The sampled value of the latent variable z.
+        x_recon (torch.Tensor): The reconstructed output from the VAE.
+        loss (torch.Tensor): The overall loss of the VAE.
+        loss_recon (torch.Tensor): The reconstruction loss component of the VAE loss.
+        loss_kl (torch.Tensor): The KL divergence component of the VAE loss.
+    """
+
+    z_dist: torch.distributions.Distribution
+    z_sample: torch.Tensor
+    x_recon: torch.Tensor
+
+    loss: torch.Tensor
+    loss_recon: torch.Tensor
+    loss_kl: torch.Tensor
 
 
 class VAE(nn.Module):
@@ -30,12 +51,32 @@ class VAE(nn.Module):
             nn.SiLU(),
             nn.Linear(hidden_dim // 4, hidden_dim // 8),
             nn.SiLU(),
-            nn.Linear(hidden_dim // 8, 2 * latent_dim),  # 2 for mean and variance.
+            nn.Linear(hidden_dim // 8, hidden_dim // 16),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 16, hidden_dim // 32),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 32, hidden_dim // 64),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 64, hidden_dim // 128),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 128, hidden_dim // 256),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 256, 2 * latent_dim),  # 2 for mean and variance.
         )
         self.softplus = nn.Softplus()  # Smooth-RELU to constraint output to (0, +inf)
 
         self.decoder = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim // 8),
+            nn.Linear(latent_dim, hidden_dim // 256),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 256, hidden_dim // 128),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 128, hidden_dim // 64),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 64, hidden_dim // 32),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 32, hidden_dim // 16),
+            nn.SiLU(),
+            nn.Linear(hidden_dim // 16, hidden_dim // 8),
             nn.SiLU(),
             nn.Linear(hidden_dim // 8, hidden_dim // 4),
             nn.SiLU(),
@@ -46,6 +87,12 @@ class VAE(nn.Module):
             nn.Linear(hidden_dim, input_dim),
             nn.Sigmoid(),
         )
+
+        print("\nEncoder layers:")
+        print(self.encoder)
+        print("Decoder layers:")
+        print(self.decoder)
+        print()
 
     def encode(self, x: torch.Tensor, eps: float = 1e-8) -> MultivariateNormal:
         """
@@ -114,8 +161,10 @@ class VAE(nn.Module):
             )
 
         # compute loss terms
-        loss_recon = F.binary_cross_entropy(recon_x, x, reduction="none").sum(-1).mean()
-        std_normal = MultivariateNormal(
+        loss_recon = (
+            F.binary_cross_entropy(recon_x, x + 0.5, reduction="none").sum(-1).mean()
+        )
+        std_normal = torch.distributions.MultivariateNormal(
             torch.zeros_like(z, device=z.device),
             scale_tril=torch.eye(z.shape[-1], device=z.device)
             .unsqueeze(0)

@@ -1,36 +1,28 @@
-import os
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
-import torch.multiprocessing as mp
 
-from tqdm import tqdm
-from datetime import datetime
-from torch.utils.data import DataLoader
+from matplotlib.colors import LogNorm
+from pathlib import Path
+from torch.nn.utils import clip_grad_norm_
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.distributed import init_process_group, destroy_process_group
+from torch.optim.optimizer import Optimizer
+from torch.utils.data import DataLoader
 from torch.utils.tensorboard.writer import SummaryWriter
+from tqdm import tqdm
 
-from data.nsynth.data import NSynthDataset
-from vae import VAE
-
-torch.autograd.set_detect_anomaly(True)
-
-BATCH_SIZE = 128
-
-TRAIN_SET = NSynthDataset(
-    "/mnt/data/quinn/nsynth/nsynth-train/examples.json",
-    "/mnt/data/quinn/nsynth/nsynth-train/audio",
-)
-
-TEST_SET = NSynthDataset(
-    "/mnt/data/quinn/nsynth/nsynth-test/examples.json",
-    "/mnt/data/quinn/nsynth/nsynth-test/audio",
-)
-
-train_loader = DataLoader(TRAIN_SET, batch_size=BATCH_SIZE, shuffle=True)
-test_loader = DataLoader(TEST_SET, batch_size=BATCH_SIZE, shuffle=True)
+from .vae import VAE
 
 
-def train(model, dataloader, optimizer, prev_updates, writer=None):
+def train(
+    model: VAE | DDP,
+    dataloader: DataLoader,
+    optimizer: Optimizer,
+    prev_updates: int,
+    device: torch.device,
+    batch_size: int,
+    writer: SummaryWriter | None = None,
+) -> int:
     """
     Trains the model on the given data.
 
@@ -40,51 +32,62 @@ def train(model, dataloader, optimizer, prev_updates, writer=None):
         loss_fn: The loss function.
         optimizer: The optimizer.
     """
-    model.train()  # Set the model to training mode
+    model.train()
+    n_upd = prev_updates
 
-    for batch_idx, data in enumerate(tqdm(dataloader)):
-        n_upd = prev_updates + batch_idx
+    def try_calculate_grad(loss, output) -> None:
+        if n_upd % 100 != 0:
+            return
 
-        data = data.to(device)
+        total_norm = 0.0
+        for p in model.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** (1.0 / 2)
 
-        optimizer.zero_grad()  # Zero the gradients
+        print(
+            f"Step {n_upd:,} (N samples: {n_upd*batch_size:,}), Loss: {loss.item():.4f} (Recon: {output.loss_recon.item():.4f}, KL: {output.loss_kl.item():.4f}) Grad: {total_norm:.4f}"
+        )
 
-        output = model(data)  # Forward pass
+        if writer is not None:
+            global_step = n_upd
+            writer.add_scalar("Loss/Train", loss.item(), global_step)
+            writer.add_scalar("Loss/Train/BCE", output.loss_recon.item(), global_step)
+            writer.add_scalar("Loss/Train/KLD", output.loss_kl.item(), global_step)
+            writer.add_scalar("GradNorm/Train", total_norm, global_step)
+
+    def update(data: torch.Tensor) -> None:
+        optimizer.zero_grad()
+        for param in model.parameters():
+            param.grad = None
+
+        output = model(data)
         loss = output.loss
 
         loss.backward()
 
-        if n_upd % 100 == 0:
-            # Calculate and log gradient norms
-            total_norm = 0.0
-            for p in model.parameters():
-                if p.grad is not None:
-                    param_norm = p.grad.data.norm(2)
-                    total_norm += param_norm.item() ** 2
-            total_norm = total_norm ** (1.0 / 2)
+        try_calculate_grad(loss, output)
 
-            print(
-                f"Step {n_upd:,} (N samples: {n_upd*BATCH_SIZE:,}), Loss: {loss.item():.4f} (Recon: {output.loss_recon.item():.4f}, KL: {output.loss_kl.item():.4f}) Grad: {total_norm:.4f}"
-            )
+        clip_grad_norm_(model.parameters(), 1.0)
 
-            if writer is not None:
-                global_step = n_upd
-                writer.add_scalar("Loss/Train", loss.item(), global_step)
-                writer.add_scalar(
-                    "Loss/Train/BCE", output.loss_recon.item(), global_step
-                )
-                writer.add_scalar("Loss/Train/KLD", output.loss_kl.item(), global_step)
-                writer.add_scalar("GradNorm/Train", total_norm, global_step)
+        optimizer.step()
 
-        # gradient clipping
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-
-        optimizer.step()  # Update the model parameters
+    for data in tqdm(dataloader):
+        n_upd += 1
+        update(data.to(device))
 
     return prev_updates + len(dataloader)
 
 
-def test(model, dataloader, cur_step, writer=None):
+def test(
+    model: VAE | DDP,
+    dataloader: DataLoader,
+    cur_step: int,
+    device: torch.device,
+    latent_dim: int,
+    writer: SummaryWriter | None = None,
+) -> None:
     """
     Tests the model on the given data.
 
@@ -94,13 +97,13 @@ def test(model, dataloader, cur_step, writer=None):
         cur_step (int): The current step.
         writer: The TensorBoard writer.
     """
-    model.eval()  # Set the model to evaluation mode
+    model.eval()
     test_loss = 0
     test_recon_loss = 0
     test_kl_loss = 0
 
     with torch.no_grad():
-        for data, target in tqdm(dataloader, desc="Testing"):
+        for data in tqdm(dataloader, desc="Testing"):
             data = data.to(device)
             data = data.view(data.size(0), -1)  # Flatten the data
 
@@ -142,41 +145,81 @@ def test(model, dataloader, cur_step, writer=None):
         )
 
 
-def run(rank, world_size) -> None:
-    learning_rate = 1e-3
-    weight_decay = 1e-2
-    num_epochs = 50
-    input_dim = 129150
-    latent_dim = 2
-    hidden_dim = 512
+def plot(
+    model: VAE | DDP,
+    train_loader: DataLoader,
+    device: torch.device,
+    latent_dim: int,
+    runs_dir: Path,
+    datetime_now: str,
+) -> None:
+    plot_dir = runs_dir / datetime_now
 
-    # device = torch.device(
-    #     "cuda"
-    #     if torch.cuda.is_available()
-    #     else "mps" if torch.backends.mps.is_available() else "cpu"
-    # )
+    z = torch.randn(64, latent_dim).to(device)
+    samples = model.decode(z)
+    # samples = torch.sigmoid(samples)
 
-    print(f"Running DDP with model parallel example on rank {rank}.")
+    # print first sample
+    # print(samples[0])
 
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "12355"
+    # Plot the generated images
+    fig, ax = plt.subplots(8, 8, figsize=(8, 8))
+    for i in range(8):
+        for j in range(8):
+            ax[i, j].imshow(
+                samples[i * 8 + j].view(28, 28).cpu().detach().numpy(), cmap="gray"
+            )
+            ax[i, j].axis("off")
 
-    destroy_process_group()
-    init_process_group("gloo", rank=rank, world_size=world_size)
+    # plt.show()
+    plt.savefig(plot_dir / "vae_mnist.webp")
 
-    # setup mp_model and devices for this process
-    dev0 = rank * 2
-    dev1 = rank * 2 + 1
-    model = DDP(VAE(input_dim, hidden_dim, latent_dim))
-    optimizer = torch.optim.AdamW(model.parameters(), weight_decay=weight_decay)
-    writer = SummaryWriter(f'runs/mnist/vae_{datetime.now().strftime("%Y%m%d-%H%M%S")}')
+    # encode and plot the z values for the train set
+    model.eval()
+    z_all = []
+    y_all = []
+    with torch.no_grad():
+        for data, target in tqdm(train_loader, desc="Encoding"):
+            data = data.to(device)
+            output = model(data, compute_loss=False)
+            z_all.append(output.z_sample.cpu().numpy())
+            y_all.append(target.numpy())
 
-    prev_updates = 0
-    for epoch in range(num_epochs):
-        print(f"Epoch {epoch+1}/{num_epochs}")
-        prev_updates = train(
-            model, train_loader, optimizer, prev_updates, writer=writer
-        )
-        test(model, test_loader, prev_updates, writer=writer)
+    z_all = np.concatenate(z_all, axis=0)
+    y_all = np.concatenate(y_all, axis=0)
+    plt.figure(figsize=(10, 10))
+    plt.scatter(z_all[:, 0], z_all[:, 1], c=y_all, cmap="tab10")
+    plt.colorbar()
+    # plt.show()
+    plt.savefig(plot_dir / "vae_mnist_2d_scatter.webp")
 
-    destroy_process_group()
+    # plot as 2d histogram, log scale
+    plt.figure(figsize=(10, 10))
+    plt.hist2d(z_all[:, 0], z_all[:, 1], bins=128, cmap="Blues", norm=LogNorm())
+    plt.colorbar()
+    # plt.show()
+    plt.savefig(plot_dir / "vae_mnist_2d_hist.webp")
+
+    # plot 1d histograms
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].hist(z_all[:, 0], bins=100, color="b", alpha=0.7)
+    ax[0].set_title("z1")
+    ax[1].hist(z_all[:, 1], bins=100, color="b", alpha=0.7)
+    ax[1].set_title("z2")
+    # plt.show()
+    plt.savefig(plot_dir / "vae_mnist_1d_hist.webp")
+
+    n = 15
+    z1 = torch.linspace(-0, 1, n)
+    z2 = torch.zeros_like(z1) + 2
+    z = torch.stack([z1, z2], dim=-1).to(device)
+    samples = model.decode(z)
+    samples = torch.sigmoid(samples)
+
+    # Plot the generated images
+    fig, ax = plt.subplots(1, n, figsize=(n, 1))
+    for i in range(n):
+        ax[i].imshow(samples[i].view(28, 28).cpu().detach().numpy(), cmap="gray")
+        ax[i].axis("off")
+
+    plt.savefig(plot_dir / "vae_mnist_interp.webp")

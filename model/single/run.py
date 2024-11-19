@@ -2,7 +2,7 @@ from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 
 from data.utils.nsynth import NSynthDataset
-from model_v2.single.config import (
+from model.single.config import (
     DATASETS_DIR,
     BATCH_SIZE,
     NUM_WORKERS,
@@ -17,8 +17,7 @@ from model_v2.single.config import (
     RUNS_DIR,
     DATETIME_NOW,
 )
-from model_v2.train import train, test, plot
-from model_v2.vae import VAE
+from model import train, test, plot, VAE
 
 
 if __name__ == "__main__":
