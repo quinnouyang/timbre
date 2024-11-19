@@ -46,6 +46,12 @@ class VAE(nn.Module):
             nn.Sigmoid(),
         )
 
+        print("\nEncoder layers:")
+        print(self.encoder)
+        print("Decoder layers:")
+        print(self.decoder)
+        print()
+
     def encode(self, x: torch.Tensor, eps: float = 1e-8) -> MultivariateNormal:
         """
         Encodes the input data into the latent space.
