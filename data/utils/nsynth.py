@@ -1,22 +1,19 @@
 import json
-import torchaudio.transforms as tat
 
-from os import path, listdir
 from argparse import ArgumentParser
-from pathlib import Path
-from typing import NamedTuple, Literal, Any
-from torch import Tensor, from_numpy, float32
-from torch.utils.data import Dataset
 from contextlib import suppress
-from model.utils import read
+from os import path, listdir
+from pathlib import Path
+from torch import Tensor, float32
+from torch.utils.data import Dataset
+from typing import NamedTuple, Literal, Any
+from torchaudio import load, transforms
 
-SR = 16000
-N_FFT = 2048
-HOP_LEN = N_FFT // 4
+transform_melspec = transforms.MelSpectrogram(n_fft=512, n_mels=64)
 
 
-stft_fn = tat.Spectrogram(N_FFT, hop_length=HOP_LEN, normalized=True)
-gla_fn = tat.GriffinLim(N_FFT, hop_length=HOP_LEN)
+def forward_transform(x: Tensor) -> Tensor:
+    return transform_melspec(x).flatten().to(float32)
 
 
 NSynthExample = NamedTuple(
@@ -91,17 +88,9 @@ class NSynthDataset(Dataset):
         with suppress(KeyError):  # Remove the "qualities_str" key, if not already
             annotation.pop("qualities_str")
 
-        s = (
-            stft_fn(
-                from_numpy(
-                    read(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[1]
-                )
-            )
-            .flatten()
-            .to(float32)
+        return forward_transform(
+            load(path.join(self.audio_dir, self.audio_filenames[i] + ".wav"))[0][0]
         )
-
-        return s / s.max()
 
         return NSynthExample(
             **annotation,
