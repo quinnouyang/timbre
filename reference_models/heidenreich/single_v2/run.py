@@ -18,8 +18,7 @@ from reference_models.heidenreich.single_v2.config import (
     RUNS_DIR,
     DATETIME_NOW,
 )
-from reference_models.heidenreich.train import train, test, plot
-from reference_models.heidenreich.vae import VAE
+from reference_models.heidenreich import train, test, plot, VAE
 
 
 if __name__ == "__main__":
