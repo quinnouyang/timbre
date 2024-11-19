@@ -8,8 +8,8 @@ from torch.utils.tensorboard.writer import SummaryWriter
 from torchvision import datasets
 from torchvision.transforms import v2
 
-from .train import train, test
-from .vae import VAE
+from reference_models.heidenreich.train import train, test
+from reference_models.heidenreich.vae import VAE
 
 
 @record
