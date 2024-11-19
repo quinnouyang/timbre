@@ -18,7 +18,7 @@ CONFIG_DIR = Path(__file__).parent
 MODEL_DIR = CONFIG_DIR.parent
 PROJ_DIR = MODEL_DIR.parent.parent
 RUNS_DIR = CONFIG_DIR / "runs"
-DATA_DIR = MODEL_DIR / "data"
+DATASETS_DIR = MODEL_DIR / "datasets"
 
 BATCH_SIZE = 1024
 LEARN_RATE = 1e-3
@@ -39,5 +39,5 @@ DATETIME_NOW = datetime.now().strftime("%Y%m%d-%H%M%S")
 WRITER = SummaryWriter(RUNS_DIR / f"log_{DATETIME_NOW}")
 
 print(
-    f"SINGLE v2 CONFIGURATION\nDevice: {DEVICE}\nBatch size: {BATCH_SIZE}\nConfiguration directory: {CONFIG_DIR.relative_to(PROJ_DIR)}\nRuns directory: {RUNS_DIR.relative_to(PROJ_DIR)}\nData directory: {DATA_DIR.relative_to(PROJ_DIR)}\n"
+    f"SINGLE v2 CONFIGURATION\nDevice: {DEVICE}\nBatch size: {BATCH_SIZE}\nConfiguration directory: {CONFIG_DIR.relative_to(PROJ_DIR)}\nRuns directory: {RUNS_DIR.relative_to(PROJ_DIR)}\nData directory: {DATASETS_DIR.relative_to(PROJ_DIR)}\n"
 )

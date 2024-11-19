@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 
 from reference_models.heidenreich.single_v2.config import (
-    DATA_DIR,
+    DATASETS_DIR,
     TRANSFORM,
     BATCH_SIZE,
     NUM_WORKERS,
@@ -25,13 +25,13 @@ from reference_models.heidenreich.vae import VAE
 if __name__ == "__main__":
     print("Loading datasets and dataloaders...")
     TRAIN_DATA = MNIST(
-        DATA_DIR,
+        DATASETS_DIR,
         download=True,
         train=True,
         transform=TRANSFORM,
     )
     TEST_DATA = MNIST(
-        DATA_DIR,
+        DATASETS_DIR,
         download=True,
         train=False,
         transform=TRANSFORM,
