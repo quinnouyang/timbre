@@ -39,5 +39,5 @@ DATETIME_NOW = datetime.now().strftime("%Y%m%d-%H%M%S")
 WRITER = SummaryWriter(RUNS_DIR / f"log_{DATETIME_NOW}")
 
 print(
-    f"SINGLE v2 CONFIGURATION\nDevice: {DEVICE}\nConfiguration directory: {CONFIG_DIR.relative_to(PROJ_DIR)}\nRuns directory: {RUNS_DIR.relative_to(PROJ_DIR)}\nData directory: {DATA_DIR.relative_to(PROJ_DIR)}"
+    f"SINGLE v2 CONFIGURATION\nDevice: {DEVICE}\nConfiguration directory: {CONFIG_DIR.relative_to(PROJ_DIR)}\nRuns directory: {RUNS_DIR.relative_to(PROJ_DIR)}\nData directory: {DATA_DIR.relative_to(PROJ_DIR)}\n"
 )

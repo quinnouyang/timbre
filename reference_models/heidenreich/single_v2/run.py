@@ -15,13 +15,15 @@ from reference_models.heidenreich.single_v2.config import (
     WEIGHT_DECAY,
     WRITER,
     N_EPOCHS,
+    RUNS_DIR,
+    DATETIME_NOW,
 )
 from reference_models.heidenreich.train import train, test, plot
 from reference_models.heidenreich.vae import VAE
 
 
 if __name__ == "__main__":
-    print("Loading datasets and dataloaders")
+    print("Loading datasets and dataloaders...")
     TRAIN_DATA = MNIST(
         DATA_DIR,
         download=True,
@@ -49,7 +51,7 @@ if __name__ == "__main__":
         pin_memory=PIN_MEMORY,
     )
 
-    print("Initiating model, optimizer, and Tensorboard")
+    print("Initiating model, optimizer, and Tensorboard...")
     MODEL = VAE(INPUT_DIM, HIDDEN_DIM, LATENT_DIM).to(DEVICE)
     OPT = AdamW(MODEL.parameters(), weight_decay=WEIGHT_DECAY)
 
@@ -57,10 +59,12 @@ if __name__ == "__main__":
     prev_updates = 0
     for epoch in range(N_EPOCHS):
         print(f"Epoch {epoch+1}/{N_EPOCHS}")
-        prev_updates = train(MODEL, TRAIN_LOADER, OPT, prev_updates, writer=WRITER)
-        test(MODEL, TEST_LOADER, prev_updates, writer=WRITER)
+        prev_updates = train(
+            MODEL, TRAIN_LOADER, OPT, prev_updates, DEVICE, BATCH_SIZE, WRITER
+        )
+        test(MODEL, TEST_LOADER, prev_updates, DEVICE, LATENT_DIM, WRITER)
 
     print("Plotting...")
-    plot(MODEL, TRAIN_LOADER)
+    plot(MODEL, TRAIN_LOADER, DEVICE, LATENT_DIM, RUNS_DIR, DATETIME_NOW)
 
     print("Done.")
