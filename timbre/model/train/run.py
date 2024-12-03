@@ -2,7 +2,7 @@ from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 
 from data.utils.nsynth import NSynthDataset
-from model.single.config import (
+from timbre.model.config.single import (
     DATASETS_DIR,
     BATCH_SIZE,
     NUM_WORKERS,
@@ -17,7 +17,7 @@ from model.single.config import (
     RUNS_DIR,
     DATETIME_NOW,
 )
-from model import train, test, plot, VAE
+from timbre import train, test, plot, VAE
 
 
 if __name__ == "__main__":
