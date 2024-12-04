@@ -1,18 +1,18 @@
 import torch
 
 from datetime import datetime
+from os import cpu_count
 from pathlib import Path
 from torch.utils.tensorboard.writer import SummaryWriter
 from torchvision.transforms.v2 import Compose, ToImage, ToDtype, Lambda
 
 
-TRANSFORM = Compose(
-    [
-        ToImage(),
-        ToDtype(torch.float32, scale=True),
-        Lambda(lambda x: x.view(-1) - 0.5),
-    ]
-)
+class FlattenNormalize(torch.nn.Module):
+    def forward(self, x):
+        return x.view(-1) - 0.5
+
+
+TRANSFORM = Compose([ToImage(), ToDtype(torch.float32, scale=True), FlattenNormalize()])
 
 CONFIG_DIR = Path(__file__).parent
 MODEL_DIR = CONFIG_DIR.parent
@@ -28,7 +28,7 @@ INPUT_DIM = 784
 LATENT_DIM = 2
 HIDDEN_DIM = 512
 
-NUM_WORKERS = 0  # os.cpu_count() or 0
+NUM_WORKERS = cpu_count() or 0
 DEVICE = torch.device(
     "cuda"
     if torch.cuda.is_available()
