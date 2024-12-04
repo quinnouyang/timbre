@@ -1,7 +1,7 @@
 from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 
-from data.utils.nsynth import NSynthDataset
+from timbre.datasets.nsynth import NSynthDataset
 from timbre.model.config.single import (
     DATASETS_DIR,
     BATCH_SIZE,
