@@ -1,2 +1,20 @@
-from .model.train.utils import train, test, plot
-from .model.vae import VAE, VAEOutput
+###############################################################################
+# Configuration
+###############################################################################
+
+
+from .config import defaults
+
+import yapecs
+
+yapecs.configure("timbre", defaults)
+
+from .config.defaults import *
+
+###############################################################################
+# Module
+###############################################################################
+
+# from .train import ...
+from . import data
+from . import model
