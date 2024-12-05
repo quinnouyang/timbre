@@ -6,7 +6,7 @@ from .utils import get_device, should_pin_memory
 
 
 # Configuration name
-CONFIG = "default"
+CONFIG = "defaults"
 
 
 ###############################################################################
@@ -34,10 +34,10 @@ ROOT_DIR = PACKAGE_DIR.parent
 # CACHE_DIR = ROOT_DIR.parent / "data" / "cache"
 
 # For unprocessed datasets
-SOURCES_DIR = ROOT_DIR / "data" / "sources"
+SOURCES_DIR = ROOT_DIR / "datasets" / "sources"
 
 # For preprocessed datasets
-DATA_DIR = ROOT_DIR / "data" / "datasets"
+PREPROCESSED_DIR = ROOT_DIR / "datasets" / "preprocessed"
 
 # For training and adaptation artifacts
 RUNS_DIR = ROOT_DIR / "runs"
