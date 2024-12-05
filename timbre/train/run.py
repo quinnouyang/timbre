@@ -1,22 +1,9 @@
+import timbre
+
 from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 
-from timbre.datasets.nsynth import NSynthDataset
-from timbre.model.config.single import (
-    DATASETS_DIR,
-    BATCH_SIZE,
-    NUM_WORKERS,
-    PIN_MEMORY,
-    INPUT_DIM,
-    HIDDEN_DIM,
-    LATENT_DIM,
-    DEVICE,
-    WEIGHT_DECAY,
-    WRITER,
-    N_EPOCHS,
-    RUNS_DIR,
-    DATETIME_NOW,
-)
+from timbre.data.nsynth import NSynthDataset
 from timbre import train, test, plot, VAE
 
 
