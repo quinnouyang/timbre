@@ -9,7 +9,13 @@ from timbre.model.vae import VAE
 
 
 # [TODO] Generalize datasets and dataloaders
-# [TODO] Feature extraction
+# [TODO] Feature extraction (actually figure out I/O with reasonable dimensions)
+# [TODO] Get it to run on malleus
+# [TODO] Tensorboard
+# [TODO] Achieve basic clustering results and audio output
+# [TODO] Checkpoints
+# [TODO] DDP
+# [TODO] Arguments
 
 
 def build_datasets() -> tuple[NSynthDataset, NSynthDataset]:
@@ -86,5 +92,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    # [TODO] Arguments
     main()
