@@ -1,6 +1,8 @@
 # Based off of https://github.com/maxrmorrison/deep-learning-project-template/blob/main/NAME/config/defaults.py
 
+from datetime import datetime
 from pathlib import Path
+from torch.utils.tensorboard.writer import SummaryWriter
 
 from .utils import get_device, should_pin_memory
 
@@ -70,15 +72,17 @@ NUM_WORKERS = 8
 LEARN_RATE = 1e-3
 WEIGHT_DECAY = 1e-2
 NUM_EPOCHS = 64
-INPUT_DIM = 16064
+# INPUT_DIM = 16064
+INPUT_DIM = 256
 LATENT_DIM = 2
-HIDDEN_DIM = 8064
+# HIDDEN_DIM = 8064
+HIDDEN_DIM = 32
 
 DEVICE = get_device()
 
 USE_PIN_MEMORY = should_pin_memory()
-# DATETIME_NOW = datetime.now().strftime("%Y%m%d-%H%M%S")
-# WRITER = SummaryWriter(RUNS_DIR / f"log_{DATETIME_NOW}")
+DATETIME_NOW = datetime.now().strftime("%Y%m%d-%H%M%S")
+WRITER = SummaryWriter(RUNS_DIR / f"log_{DATETIME_NOW}")
 
 
 ###############################################################################
