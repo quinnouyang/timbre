@@ -3,6 +3,8 @@ ipykernel
 librosa
 matplotlib
 pip
+tensorboard
 torchaudio
 torchvision
 tqdm
+yapecs
