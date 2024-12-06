@@ -8,36 +8,41 @@ from timbre.train.utils import train, test, plot
 from timbre.model.vae import VAE
 
 
-def main() -> None:
-    print(timbre.DEVICE)
+# [TODO] Generalize datasets and dataloaders
+# [TODO] Feature extraction
+
+
+def build_datasets() -> tuple[NSynthDataset, NSynthDataset]:
+    return (
+        NSynthDataset(timbre.SOURCES_DIR / "nsynth" / "nsynth-valid"),
+        NSynthDataset(timbre.SOURCES_DIR / "nsynth" / "nsynth-test"),
+    )
+
+
+def build_dataloaders() -> tuple[DataLoader, DataLoader]:
     print("Loading datasets and dataloaders...")
-    # [TODO] Generalize datasets and dataloaders
-    # [TODO] Feature extraction
-    TRAIN_DATA = NSynthDataset(
-        timbre.SOURCES_DIR / "nsynth" / "nsynth-valid" / "examples.json",
-        timbre.SOURCES_DIR / "nsynth" / "nsynth-valid" / "audio",
+    train_data, test_data = build_datasets()
+    print(
+        f"Training datapoints: {len(train_data)}\nTesting datapoints: {len(test_data)}\n"
     )
-    TEST_DATA = NSynthDataset(
-        timbre.SOURCES_DIR / "nsynth" / "nsynth-test" / "examples.json",
-        timbre.SOURCES_DIR / "nsynth" / "nsynth-test" / "audio",
-    )
-    TRAIN_LOADER = DataLoader(
-        TRAIN_DATA,
+
+    return DataLoader(
+        train_data,
         batch_size=timbre.BATCH_SIZE,
         shuffle=True,
         num_workers=timbre.NUM_WORKERS,
         pin_memory=timbre.USE_PIN_MEMORY,
-    )
-    TEST_LOADER = DataLoader(
-        TEST_DATA,
+    ), DataLoader(
+        test_data,
         batch_size=timbre.BATCH_SIZE,
         shuffle=False,
         num_workers=timbre.NUM_WORKERS,
         pin_memory=timbre.USE_PIN_MEMORY,
     )
-    print(
-        f"Training datapoints: {len(TRAIN_DATA)}\nTesting datapoints: {len(TEST_DATA)}\n"
-    )
+
+
+def main() -> None:
+    TRAIN_LOADER, TEST_LOADER = build_dataloaders()
 
     print("Initiating model, optimizer, and Tensorboard...")
     MODEL = VAE(timbre.INPUT_DIM, timbre.HIDDEN_DIM, timbre.LATENT_DIM).to(
