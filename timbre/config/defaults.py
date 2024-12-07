@@ -25,27 +25,29 @@ DATASETS = ["nsynth"]
 # Directories
 ###############################################################################
 
-PACKAGE_DIR = Path(__file__).parent.parent
+_PACKAGE_DIR = Path(__file__).parent.parent
 
 # For assets to bundle with pip release
-# ASSETS_DIR = PACKAGE_DIR / "assets"
+# ASSETS_DIR = _PACKAGE_DIR / "assets"
 
-ROOT_DIR = PACKAGE_DIR.parent
+_ROOT_DIR = _PACKAGE_DIR.parent
+
+_DATA_DIR = _ROOT_DIR / "datasets"
 
 # For preprocessed features
-# CACHE_DIR = ROOT_DIR.parent / "data" / "cache"
+# CACHE_DIR = _DATA_DIR / "cache"
 
 # For unprocessed datasets
-SOURCES_DIR = ROOT_DIR / "datasets" / "sources"
+SOURCES_DIR = _DATA_DIR / "sources"
 
 # For preprocessed datasets
-PREPROCESSED_DIR = ROOT_DIR / "datasets" / "preprocessed"
+PREPROCESSED_DIR = _DATA_DIR / "preprocessed"
 
 # For training and adaptation artifacts
-RUNS_DIR = ROOT_DIR / "runs"
+RUNS_DIR = _ROOT_DIR / "runs"
 
 # For evaluation artifacts
-# EVAL_DIR = ROOT_DIR.parent / "eval"
+# EVAL_DIR = _ROOT_DIR.parent / "eval"
 
 
 ###############################################################################

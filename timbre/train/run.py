@@ -1,5 +1,7 @@
 import timbre
 
+from argparse import ArgumentParser
+from pathlib import Path
 from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 
@@ -20,7 +22,7 @@ from timbre.model.vae import VAE
 
 def build_datasets() -> tuple[NSynthDataset, NSynthDataset]:
     return (
-        NSynthDataset(timbre.SOURCES_DIR / "nsynth" / "nsynth-valid"),
+        NSynthDataset(timbre.SOURCES_DIR / "nsynth" / "nsynth-train"),
         NSynthDataset(timbre.SOURCES_DIR / "nsynth" / "nsynth-test"),
     )
 
@@ -48,6 +50,11 @@ def build_dataloaders() -> tuple[DataLoader, DataLoader]:
 
 
 def main() -> None:
+    parser = ArgumentParser()
+    parser.add_argument("--config", type=Path, nargs="+", help="Configuration file(s)")
+
+    print(f"Using {timbre.CONFIG} configuration\n")
+
     TRAIN_LOADER, TEST_LOADER = build_dataloaders()
 
     print("Initiating model, optimizer, and Tensorboard...")
