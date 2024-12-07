@@ -1,9 +1,12 @@
 black
 ipykernel
+isort
+librosa
 matplotlib
-scipy
+pip
 tensorboard
-torch
+torch_tb_profiler
 torchaudio
 torchvision
 tqdm
+yapecs
