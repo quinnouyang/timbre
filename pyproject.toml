@@ -27,11 +27,13 @@ classifiers = [
 dynamic = ["dependencies"]
 
 [project.urls]
-Homepage = "https://github.com/quinnouyang/timbre"
-# Documentation = ""
-Repository = "https://github.com/quinnouyang/timbre.git"
-"Bug Tracker" = "https://github.com/quinnouyang/timbre/issues"
-# Changelog = ""
+# homepage = ""
+source = "https://github.com/quinnouyang/timbre"
+github = "https://github.com/quinnouyang/timbre.git"
+# download = ""
+# changelog = ""
+# documentation = ""
+issues = "https://github.com/quinnouyang/timbre/issues"
 
 [tool.hatch.metadata]
 allow-direct-references = true
