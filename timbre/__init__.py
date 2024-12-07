@@ -3,18 +3,16 @@
 ###############################################################################
 
 
-from .config import defaults
-
 import yapecs
 
-yapecs.configure("timbre", defaults)
+from .config import defaults
 
-from .config.defaults import *
+yapecs.configure("timbre", defaults)
 
 ###############################################################################
 # Module
 ###############################################################################
 
 # from .train import ...
-from . import data
-from . import model
+from . import data, model
+from .config.defaults import *

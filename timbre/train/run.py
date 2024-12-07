@@ -1,14 +1,13 @@
-import timbre
-
 from argparse import ArgumentParser
 from pathlib import Path
+
 from torch.optim.adamw import AdamW
 from torch.utils.data import DataLoader
 
+import timbre
 from timbre.data.nsynth import NSynthDataset
-from timbre.train.utils import train, test, plot
 from timbre.model.vae import VAE
-
+from timbre.train.utils import plot, test, train
 
 # [TODO] Generalize datasets and dataloaders
 # [TODO] Feature extraction (actually figure out I/O with reasonable dimensions)

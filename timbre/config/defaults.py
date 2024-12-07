@@ -2,10 +2,10 @@
 
 from datetime import datetime
 from pathlib import Path
+
 from torch.utils.tensorboard.writer import SummaryWriter
 
 from .utils import get_device, should_pin_memory
-
 
 # Configuration name
 CONFIG = "defaults"

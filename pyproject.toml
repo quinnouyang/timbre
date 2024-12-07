@@ -46,3 +46,4 @@ files = ["requirements.txt"]
 
 [tool.isort]
 profile = "black"
+skip_glob = ["reference_models/*"]

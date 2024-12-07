@@ -1,12 +1,12 @@
 import json
-
 from argparse import ArgumentParser
 from contextlib import suppress
-from os import path, listdir
+from os import listdir, path
 from pathlib import Path
+from typing import Any, Literal, NamedTuple
+
 from torch import Tensor, float32
 from torch.utils.data import Dataset
-from typing import NamedTuple, Literal, Any
 from torchaudio import load, transforms
 
 transform_melspec = transforms.MelSpectrogram(n_fft=512, n_mels=64)
