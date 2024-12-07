@@ -43,3 +43,6 @@ files = ["requirements.txt"]
 
 # [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 # cli = ["requirements-dev.txt"]
+
+[tool.isort]
+profile = "black"
