@@ -44,6 +44,9 @@ files = ["requirements.txt"]
 # [tool.hatch.metadata.hooks.requirements_txt.optional-dependencies]
 # cli = ["requirements-dev.txt"]
 
+[tool.black]
+extend-exclude = "reference_models"
+
 [tool.isort]
 profile = "black"
-skip_glob = ["reference_models/*"]
+skip_glob = ["reference_models"]
