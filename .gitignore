@@ -3,11 +3,10 @@
 __pycache__
 .python-version
 
-# Datasets
+# Directories
 datasets/
-
-# Outputs
-runs
+runs/
+reference_models/heidenreich/datasets/
 
 # Miscellaneous
 **/.DS_Store

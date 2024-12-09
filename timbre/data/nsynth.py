@@ -1,12 +1,12 @@
 import json
-
 from argparse import ArgumentParser
 from contextlib import suppress
-from os import path, listdir
+from os import listdir, path
 from pathlib import Path
+from typing import Any, Literal, NamedTuple
+
 from torch import Tensor, float32
 from torch.utils.data import Dataset
-from typing import NamedTuple, Literal, Any
 from torchaudio import load, transforms
 
 transform_melspec = transforms.MelSpectrogram(n_fft=512, n_mels=64)
@@ -43,17 +43,17 @@ class NSynthDataset(Dataset):
 
     Parameters
     ----------
-    `annotations_file` : `str` | `Path`
-        Path to the JSON file containing the annotations
-    `audio_dir` : `str` | `Path`
-        Path to the directory containing the audio files
+    `source_dir` : `str` | `Path`
+        Path to a subset of the unprocessed NSynth dataset directory containing `examples.json` and `audio` directory
     """
 
-    def __init__(
-        self,
-        annotations_file: str | Path,
-        audio_dir: str | Path,
-    ) -> None:
+    def __init__(self, source_dir: str | Path) -> None:
+        if isinstance(source_dir, str):
+            source_dir = Path(source_dir)
+
+        annotations_file = source_dir / "examples.json"
+        audio_dir = source_dir / "audio"
+
         with open(annotations_file, "r") as f:
             self.annotations: dict[str, Any] = json.load(f)
             self.keys = sorted(self.annotations.keys())  # note_strs
@@ -109,9 +109,6 @@ if __name__ == "__main__":
 
     print(f"TEST: Loading NSynthDataset and printing its last example")
 
-    D = NSynthDataset(
-        path.join(args.subset_path, "examples.json"),
-        path.join(args.subset_path, "audio"),
-    )
+    D = NSynthDataset(args.subset_path)
 
     print(D[-1])

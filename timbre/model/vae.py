@@ -1,8 +1,8 @@
+from dataclasses import dataclass
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from dataclasses import dataclass
 from torch.distributions.multivariate_normal import MultivariateNormal
 
 
